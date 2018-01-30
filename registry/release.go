@@ -1,50 +1,42 @@
 package registry
 
 import (
-	"crypto/sha256"
 	"encoding/base64"
-	"fmt"
 	"time"
 
 	"github.com/bryanl/ksonnet-registry/store"
-	"github.com/pkg/errors"
 )
 
+// Release is a released version of a package.
 type Release struct {
 	Namespace string
 	Package   string
 	Version   string
+	Digest    string
 	CreatedAt time.Time
-	digest    string
 	store     store.Store
 }
 
-func NewRelease(s store.Store, ns, pkg, version string, data []byte) (*Release, error) {
-	sum := sha256.Sum256(data)
-	digest := fmt.Sprintf("%x", sum)
-
-	if err := s.Write(digest, data); err != nil {
-		return nil, errors.Wrap(err, "store data")
-	}
-
-	return &Release{
+// NewRelease creates a new instance of Release.
+func NewRelease(s store.Store, ns, pkg, version, digest string) *Release {
+	r := &Release{
 		Namespace: ns,
 		Package:   pkg,
 		Version:   version,
+		Digest:    digest,
 		CreatedAt: time.Now(),
-		digest:    digest,
 		store:     s,
-	}, nil
+	}
+
+	return r
 }
 
-func (r *Release) Digest() string {
-	return r.digest
-}
-
+// Delete removes a release.
 func (r *Release) Delete() error {
-	return r.store.Delete(r.digest)
+	return r.store.RemoveRelease(r.Namespace, r.Package, r.Version)
 }
 
+// CreateRelease creates a release.
 func CreateRelease(s store.Store, nsName, pkgName, ver, blob string) (*Release, error) {
 	ns, err := GetNamespace(s, nsName)
 	if err != nil {
@@ -69,6 +61,7 @@ func CreateRelease(s store.Store, nsName, pkgName, ver, blob string) (*Release, 
 	return release, nil
 }
 
+// ShowRelease shows a release.
 func ShowRelease(s store.Store, nsName, pkgName, ver string) (*Release, error) {
 	ns, err := GetNamespace(s, nsName)
 	if err != nil {
@@ -83,6 +76,7 @@ func ShowRelease(s store.Store, nsName, pkgName, ver string) (*Release, error) {
 	return pkg.Release(ver)
 }
 
+// DeleteRelease removes a release.
 func DeleteRelease(s store.Store, nsName, pkgName, ver string) error {
 	ns, err := GetNamespace(s, nsName)
 	if err != nil {

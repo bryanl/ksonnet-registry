@@ -1,41 +1,31 @@
 package registry
 
-import "github.com/bryanl/ksonnet-registry/store"
-
-var (
-	namespaces map[string]*Namespace = make(map[string]*Namespace)
+import (
+	"github.com/bryanl/ksonnet-registry/store"
 )
 
+// GetNamespace returns a namespace by name.
 func GetNamespace(s store.Store, name string) (*Namespace, error) {
-	n, ok := namespaces[name]
-	if !ok {
-		n = NewNamespace(s, name)
-		namespaces[name] = n
-	}
-
-	return n, nil
+	ns := NewNamespace(s, name)
+	return ns, nil
 }
 
+// Namespace is a ksonnet registry namespace.
 type Namespace struct {
-	Name     string
-	packages map[string]*Package
-	store    store.Store
+	Name  string
+	store store.Store
 }
 
+// NewNamespace creates an instance of Namespace.
 func NewNamespace(s store.Store, name string) *Namespace {
 	return &Namespace{
-		Name:     name,
-		packages: make(map[string]*Package),
-		store:    s,
+		Name:  name,
+		store: s,
 	}
 }
 
-func (n *Namespace) Package(name string) (*Package, error) {
-	p, ok := n.packages[name]
-	if !ok {
-		p = NewPackage(n.store, n.Name, name)
-		n.packages[name] = p
-	}
-
+// Package returns a package from a namespace.
+func (n *Namespace) Package(pkgName string) (*Package, error) {
+	p := NewPackage(n.store, n.Name, pkgName)
 	return p, nil
 }

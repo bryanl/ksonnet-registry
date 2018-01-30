@@ -2,104 +2,98 @@ package registry
 
 import (
 	"fmt"
-	"io/ioutil"
 	"mime/multipart"
-	"os"
-	"sync"
 
 	"github.com/bryanl/ksonnet-registry/store"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
+// Package is a package in a ksonnet registry namespace.
 type Package struct {
 	Name      string
 	Namespace string
-	releases  map[string]*Release
 	store     store.Store
-
-	mu sync.Mutex
 }
 
+// NewPackage creates an instance of Package.
 func NewPackage(s store.Store, ns, name string) *Package {
 	return &Package{
 		Name:      name,
 		Namespace: ns,
-		releases:  make(map[string]*Release),
 		store:     s,
 	}
 }
 
-func (p *Package) CreateRelease(release string, data []byte) (*Release, error) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	_, ok := p.releases[release]
-	if ok {
-		return nil, errors.Errorf("release %q already exists", release)
-	}
-
-	r, err := NewRelease(p.store, p.Namespace, p.Name, release, data)
+// CreateRelease creates a new release version.
+func (p *Package) CreateRelease(version string, data []byte) (*Release, error) {
+	releases, err := p.store.Releases(p.Namespace, p.Name)
 	if err != nil {
-		return nil, errors.Wrapf(err, "create release %q", release)
+		return nil, err
 	}
-	p.releases[release] = r
 
+	logrus.WithField("releases", releases).Info("current releases")
+
+	for _, name := range releases {
+		if version == name {
+			return nil, errors.Errorf("release %q already exists", version)
+		}
+	}
+
+	digest, err := p.store.CreateRelease(p.Namespace, p.Name, version, data)
+	if err != nil {
+		return nil, err
+	}
+
+	r := NewRelease(p.store, p.Namespace, p.Name, version, digest)
 	return r, nil
 }
 
+// Release returns a release by version.
 func (p *Package) Release(ver string) (*Release, error) {
-	r, ok := p.releases[ver]
-	if !ok {
-		return nil, errors.Errorf("release %s was not found", ver)
+	releases, err := p.store.Releases(p.Namespace, p.Name)
+	if err != nil {
+		return nil, err
 	}
 
-	return r, nil
+	for _, name := range releases {
+		if name == ver {
+			digest, err := p.store.Digest(p.Namespace, p.Name, ver)
+			if err != nil {
+				return nil, err
+			}
+
+			r := NewRelease(p.store, p.Namespace, p.Name, ver, digest)
+			return r, nil
+		}
+	}
+
+	return nil, errors.Errorf("release %s was not found", ver)
 }
 
+// Delete deletes a version from a package.
 func (p *Package) Delete(ver string) error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	r, ok := p.releases[ver]
-	if !ok {
-		return errors.Errorf("release %s was not found", ver)
+	r, err := p.Release(ver)
+	if err != nil {
+		return err
 	}
 
 	if err := r.Delete(); err != nil {
 		return errors.Wrapf(err, "unable to delete version %s", ver)
 	}
 
-	delete(p.releases, ver)
-
 	return nil
 }
 
+// Pull pulls a digest from the package.
 func (p *Package) Pull(digest string) (multipart.File, *multipart.FileHeader, error) {
-	data, err := p.store.Read(digest)
+	f, err := p.store.Pull(p.Namespace, p.Name, digest)
 	if err != nil {
 		return nil, nil, err
 	}
-
-	// TODO: (bryanl) - when will this file be deleted?
-	tmpFile, err := ioutil.TempFile("", digest)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if _, err = tmpFile.Write(data); err != nil {
-		return nil, nil, err
-	}
-
-	tmpFile.Close()
 
 	hdr := &multipart.FileHeader{
-		Filename: fmt.Sprintf("%s", digest),
-		Size:     int64(len(data)),
-	}
-
-	f, err := os.Open(tmpFile.Name())
-	if err != nil {
-		return nil, nil, err
+		Filename: fmt.Sprintf("%s.tar.gz", digest),
 	}
 
 	return f, hdr, nil

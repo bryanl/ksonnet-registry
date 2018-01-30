@@ -1,7 +1,6 @@
 package restapi
 
 import (
-	"compress/gzip"
 	"crypto/tls"
 	"fmt"
 	"io"
@@ -28,7 +27,11 @@ var (
 )
 
 func init() {
-	s = store.NewMemoryStore()
+	var err error
+	s, err = store.NewTempStore()
+	if err != nil {
+		logrus.WithError(err).Fatal("unable to initialize store")
+	}
 }
 
 //go:generate swagger generate server --target .. --name ksonnet-registry --spec ../swagger.yml
@@ -56,10 +59,7 @@ func configureAPI(api *operations.KsonnetRegistryAPI) http.Handler {
 		default:
 			return errors.NotImplemented(fmt.Sprintf("not sure what to do with file of type %T", t))
 		case models.PullBlobOKBody:
-			gw := gzip.NewWriter(w)
-			defer gw.Close()
-
-			if _, err := io.Copy(gw, t.Data); err != nil {
+			if _, err := io.Copy(w, t.Data); err != nil {
 				return err
 			}
 
@@ -121,7 +121,9 @@ func configureAPI(api *operations.KsonnetRegistryAPI) http.Handler {
 		return resp
 	})
 
-	api.ServerShutdown = func() {}
+	api.ServerShutdown = func() {
+		s.Close()
+	}
 
 	return setupGlobalMiddleware(api.Serve(setupMiddlewares))
 }

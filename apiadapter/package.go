@@ -12,6 +12,7 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
+// CreatePackage creates a package.
 func CreatePackage(s store.Store, params package_operations.CreatePackageParams) middleware.Responder {
 	release, err := registry.CreateRelease(
 		s,
@@ -39,6 +40,7 @@ func CreatePackage(s store.Store, params package_operations.CreatePackageParams)
 	return resp
 }
 
+// ShowPackage shows a package.
 func ShowPackage(s store.Store, params package_operations.ShowPackageParams) middleware.Responder {
 	release, err := registry.ShowRelease(
 		s,
@@ -59,7 +61,7 @@ func ShowPackage(s store.Store, params package_operations.ShowPackageParams) mid
 		Release:   release.Version,
 		CreatedAt: strfmt.DateTime(release.CreatedAt),
 		Content: &models.OciDescriptor{
-			Digest: release.Digest(),
+			Digest: release.Digest,
 		},
 	}
 	payload := models.PackageManifest{manifest}
@@ -70,6 +72,7 @@ func ShowPackage(s store.Store, params package_operations.ShowPackageParams) mid
 	return resp
 }
 
+// DeletePackage deletes a package.
 func DeletePackage(s store.Store, params package_operations.DeletePackageParams) middleware.Responder {
 	if err := registry.DeleteRelease(s, params.Namespace, params.Package, params.Release); err != nil {
 		payload := &models.Error{Message: err.Error()}
@@ -80,6 +83,7 @@ func DeletePackage(s store.Store, params package_operations.DeletePackageParams)
 	return package_operations.NewDeletePackageOK()
 }
 
+// PullPackage pulls a package.
 func PullPackage(s store.Store, params blobs.PullBlobParams) middleware.Responder {
 	ns, err := registry.GetNamespace(s, params.Namespace)
 	if err != nil {
