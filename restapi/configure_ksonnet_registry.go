@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 
 	errors "github.com/go-openapi/errors"
@@ -53,15 +52,10 @@ func configureAPI(api *operations.KsonnetRegistryAPI) http.Handler {
 	api.JSONProducer = runtime.JSONProducer()
 
 	api.GzipProducer = runtime.ProducerFunc(func(w io.Writer, data interface{}) error {
-		api.Logger("w = %T and data = %#v", w, data)
 		switch t := data.(type) {
 		default:
 			return errors.NotImplemented(fmt.Sprintf("not sure what to do with file of type %T", t))
 		case models.PullBlobOKBody:
-			b, _ := ioutil.ReadAll(t.Data)
-
-			logrus.Printf("sending data: %s", string(b))
-
 			gw := gzip.NewWriter(w)
 			defer gw.Close()
 

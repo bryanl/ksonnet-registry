@@ -13,9 +13,9 @@ import (
 
 // PullBlobOKBody package-targz
 // swagger:model pullBlobOKBody
-type PullBlobOKBody *runtime.File
+type PullBlobOKBody runtime.File
 
 // Validate validates this pull blob o k body
-func (m PullBlobOKBody) Validate(formats strfmt.Registry) error {
+func (m *PullBlobOKBody) Validate(formats strfmt.Registry) error {
 	return nil
 }

@@ -16,8 +16,8 @@ import (
 // swagger:model Version
 type Version struct {
 
-	// appr api
-	ApprAPI string `json:"appr-api,omitempty"`
+	// ksonnet registry api
+	KsonnetRegistryAPI string `json:"ksonnet-registry-api,omitempty"`
 }
 
 // Validate validates this version

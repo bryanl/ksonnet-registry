@@ -1266,7 +1266,7 @@ func init() {
     "Version": {
       "type": "object",
       "properties": {
-        "appr-api": {
+        "ksonnet-registry-api": {
           "type": "string"
         }
       }

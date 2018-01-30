@@ -1,8 +1,10 @@
 package registry
 
 import (
+	"fmt"
 	"io/ioutil"
 	"mime/multipart"
+	"os"
 	"sync"
 
 	"github.com/bryanl/ksonnet-registry/store"
@@ -84,9 +86,21 @@ func (p *Package) Pull(digest string) (multipart.File, *multipart.FileHeader, er
 		return nil, nil, err
 	}
 
-	if _, err := tmpFile.Write(data); err != nil {
+	if _, err = tmpFile.Write(data); err != nil {
 		return nil, nil, err
 	}
 
-	return tmpFile, nil
+	tmpFile.Close()
+
+	hdr := &multipart.FileHeader{
+		Filename: fmt.Sprintf("%s", digest),
+		Size:     int64(len(data)),
+	}
+
+	f, err := os.Open(tmpFile.Name())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return f, hdr, nil
 }
