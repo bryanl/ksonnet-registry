@@ -5,8 +5,8 @@ set -e
 OPTS=$(getopt --long host:,namespace:,package: -n 'parse-options' -- "$@")
 
 HOST="http://localhost:9000"
-NAMESPACE="ns"
-PACKAGE="node"
+NAMESPACE="ksonnet"
+PACKAGE="deployed-service"
 
 while true; do
   case "$1" in

@@ -1,25 +1,38 @@
 #!/bin/bash
 
-set -e
+# Upload a part to the registry service. By default, it
+# will construct the part.
 
-OPTS=$(getopt --long host:,namespace:,package: -n 'parse-options' -- "$@")
+set -e
+set -x
+
+OPTS=$(getopt --long host:,namespace:,package:,part: -n 'parse-options' -- "$@")
 
 HOST="http://localhost:9000"
-NAMESPACE="ns"
-PACKAGE="node"
+NAMESPACE="ksonnet"
+PACKAGE="deployed-service"
 
 while true; do
   case "$1" in
-    --host ) HOST="$2"; shift; shift; ;;
-    --namespace ) NAMESPACE="$2"; shift; shift; ;;
-    --package ) PACKAGE="$2"; shift; shift; ;;
+    --host ) HOST="$2"; shift 2; ;;
+    --namespace ) NAMESPACE="$2"; shift 2; ;;
+    --package ) PACKAGE="$2"; shift 2; ;;
+    --part ) PART="$2"; shift 2; ;;
     * ) break ;;
   esac
 done
 
-HOST=${1:-localhost:9000}
-ROOT=$(cd "$(dirname "$0")/../.."; pwd)
-PART="${ROOT}/store/testdata/node.tar.gz"
+if [ -z "${PART}" ]; then
+  name=$(basename $0)
+  dir=$(mktemp -d /tmp/${name}.$$)
+  if [ $? -ne 0 ]; then
+    echo "$0: can't create temp directory, exiting..."
+    exit 1
+  fi
+
+  tar cvzf ${dir}/part.tar.gz -C data/deployed-service .
+  PART="${dir}/part.tar.gz"
+fi
 
 BLOB=$(base64 -i ${PART})
 
