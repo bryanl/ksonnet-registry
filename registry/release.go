@@ -76,6 +76,21 @@ func ShowRelease(s store.Store, nsName, pkgName, ver string) (*Release, error) {
 	return pkg.Release(ver)
 }
 
+// ShowReleases shows all releases for a package.
+func ShowReleases(s store.Store, nsName, pkgName string) ([]Release, error) {
+	ns, err := GetNamespace(s, nsName)
+	if err != nil {
+		return nil, err
+	}
+
+	pkg, err := ns.Package(pkgName)
+	if err != nil {
+		return nil, err
+	}
+
+	return pkg.Releases()
+}
+
 // DeleteRelease removes a release.
 func DeleteRelease(s store.Store, nsName, pkgName, ver string) error {
 	ns, err := GetNamespace(s, nsName)

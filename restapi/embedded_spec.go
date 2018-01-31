@@ -87,8 +87,8 @@ func init() {
         "tags": [
           "package"
         ],
-        "summary": "List all manifests for a package",
-        "operationId": "showPackageManifests",
+        "summary": "List all releases for a package",
+        "operationId": "showPackageReleases",
         "parameters": [
           {
             "type": "string",
@@ -103,6 +103,12 @@ func init() {
             "name": "package",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Filter by media-type",
+            "name": "media_type",
+            "in": "query"
           }
         ],
         "responses": {

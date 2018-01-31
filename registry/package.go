@@ -71,6 +71,28 @@ func (p *Package) Release(ver string) (*Release, error) {
 	return nil, errors.Errorf("release %s was not found", ver)
 }
 
+// Releases returns all releases.
+func (p *Package) Releases() ([]Release, error) {
+	versions, err := p.store.Releases(p.Namespace, p.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	var releases []Release
+
+	for _, v := range versions {
+		digest, err := p.store.Digest(p.Namespace, p.Name, v)
+		if err != nil {
+			return nil, err
+		}
+
+		r := NewRelease(p.store, p.Namespace, p.Name, v, digest)
+		releases = append(releases, *r)
+	}
+
+	return releases, nil
+}
+
 // Delete deletes a version from a package.
 func (p *Package) Delete(ver string) error {
 	r, err := p.Release(ver)

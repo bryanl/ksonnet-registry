@@ -89,8 +89,8 @@ func NewKsonnetRegistryAPI(spec *loads.Document) *KsonnetRegistryAPI {
 		PackageOperationsShowPackageHandler: package_operations.ShowPackageHandlerFunc(func(params package_operations.ShowPackageParams) middleware.Responder {
 			return middleware.NotImplemented("operation PackageOperationsShowPackage has not yet been implemented")
 		}),
-		PackageOperationsShowPackageManifestsHandler: package_operations.ShowPackageManifestsHandlerFunc(func(params package_operations.ShowPackageManifestsParams) middleware.Responder {
-			return middleware.NotImplemented("operation PackageOperationsShowPackageManifests has not yet been implemented")
+		PackageOperationsShowPackageReleasesHandler: package_operations.ShowPackageReleasesHandlerFunc(func(params package_operations.ShowPackageReleasesParams) middleware.Responder {
+			return middleware.NotImplemented("operation PackageOperationsShowPackageReleases has not yet been implemented")
 		}),
 	}
 }
@@ -154,8 +154,8 @@ type KsonnetRegistryAPI struct {
 	ChannelShowChannelHandler channel.ShowChannelHandler
 	// PackageOperationsShowPackageHandler sets the operation handler for the show package operation
 	PackageOperationsShowPackageHandler package_operations.ShowPackageHandler
-	// PackageOperationsShowPackageManifestsHandler sets the operation handler for the show package manifests operation
-	PackageOperationsShowPackageManifestsHandler package_operations.ShowPackageManifestsHandler
+	// PackageOperationsShowPackageReleasesHandler sets the operation handler for the show package releases operation
+	PackageOperationsShowPackageReleasesHandler package_operations.ShowPackageReleasesHandler
 
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
@@ -283,8 +283,8 @@ func (o *KsonnetRegistryAPI) Validate() error {
 		unregistered = append(unregistered, "package_operations.ShowPackageHandler")
 	}
 
-	if o.PackageOperationsShowPackageManifestsHandler == nil {
-		unregistered = append(unregistered, "package_operations.ShowPackageManifestsHandler")
+	if o.PackageOperationsShowPackageReleasesHandler == nil {
+		unregistered = append(unregistered, "package_operations.ShowPackageReleasesHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -458,7 +458,7 @@ func (o *KsonnetRegistryAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/api/v1/packages/{namespace}/{package}"] = package_operations.NewShowPackageManifests(o.context, o.PackageOperationsShowPackageManifestsHandler)
+	o.handlers["GET"]["/api/v1/packages/{namespace}/{package}"] = package_operations.NewShowPackageReleases(o.context, o.PackageOperationsShowPackageReleasesHandler)
 
 }
 

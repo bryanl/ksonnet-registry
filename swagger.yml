@@ -259,42 +259,6 @@ paths:
           description: Bad version or name format
           schema:
             $ref: "#/definitions/Error"
-    get:
-      tags:
-        - package
-      summary: List all manifests for a package
-      description: ""
-      operationId: showPackageManifests
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: path
-          name: namespace
-          description: namespace
-          required: true
-          type: string
-
-        - in: path
-          name: package
-          description: package name
-          required: true
-          type: string
-
-      responses:
-        "200":
-          description: successful operation
-          schema:
-            $ref: "#/definitions/PackageManifest"
-        "404":
-          description: Package not found
-          schema:
-            $ref: "#/definitions/Error"
-        "401":
-          description: Not authorized to read the package
-          schema:
-            $ref: "#/definitions/Error"
 
   /api/v1/packages/{namespace}/{package}/{release}/{media_type}:
     get:

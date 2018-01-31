@@ -41,12 +41,11 @@ func CreatePackage(s store.Store, params package_operations.CreatePackageParams)
 }
 
 // ShowPackage shows a package.
-func ShowPackage(s store.Store, params package_operations.ShowPackageParams) middleware.Responder {
-	release, err := registry.ShowRelease(
+func ShowPackage(s store.Store, params package_operations.ShowPackageReleasesParams) middleware.Responder {
+	releases, err := registry.ShowReleases(
 		s,
 		params.Namespace,
 		params.Package,
-		params.Release,
 	)
 
 	if err != nil {
@@ -56,18 +55,24 @@ func ShowPackage(s store.Store, params package_operations.ShowPackageParams) mid
 		return resp
 	}
 
-	manifest := &models.Manifest{
-		Package:   release.Package,
-		Release:   release.Version,
-		CreatedAt: strfmt.DateTime(release.CreatedAt),
-		Content: &models.OciDescriptor{
-			Digest: release.Digest,
-		},
+	var manifests models.PackageManifest
+
+	for _, r := range releases {
+		manifest := &models.Manifest{
+			Package:   r.Package,
+			Release:   r.Version,
+			CreatedAt: strfmt.DateTime(r.CreatedAt),
+			Content: &models.OciDescriptor{
+				Digest: r.Digest,
+			},
+		}
+
+		manifests = append(manifests, manifest)
+
 	}
-	payload := models.PackageManifest{manifest}
 
 	resp := package_operations.NewShowPackageManifestsOK().
-		WithPayload(payload)
+		WithPayload(manifests)
 
 	return resp
 }

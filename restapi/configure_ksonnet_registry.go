@@ -110,15 +110,10 @@ func configureAPI(api *operations.KsonnetRegistryAPI) http.Handler {
 		return middleware.NotImplemented("operation channel.ShowChannel has not yet been implemented")
 	})
 	api.PackageOperationsShowPackageHandler = package_operations.ShowPackageHandlerFunc(func(params package_operations.ShowPackageParams) middleware.Responder {
-		return apiadapter.ShowPackage(s, params)
+		return middleware.NotImplemented("operation channel.ShowPackageHandler has not yet been implemented")
 	})
-	api.PackageOperationsShowPackageManifestsHandler = package_operations.ShowPackageManifestsHandlerFunc(func(params package_operations.ShowPackageManifestsParams) middleware.Responder {
-		var manifests models.PackageManifest
-
-		resp := package_operations.NewShowPackageManifestsOK().
-			WithPayload(manifests)
-
-		return resp
+	api.PackageOperationsShowPackageReleasesHandler = package_operations.ShowPackageReleasesHandlerFunc(func(params package_operations.ShowPackageReleasesParams) middleware.Responder {
+		return apiadapter.ShowPackage(s, params)
 	})
 
 	api.ServerShutdown = func() {
