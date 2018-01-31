@@ -42,7 +42,8 @@ func (p *Package) CreateRelease(version string, data []byte) (*Release, error) {
 		return nil, err
 	}
 
-	r := NewRelease(p.store, p.Namespace, p.Name, version, rm.Digest, rm.CreatedAt, rm.Size)
+	r := NewRelease(p.store, p.Namespace, p.Name, version, rm.Digest, rm.CreatedAt, rm.Size,
+		rm.Dependencies.ToMap())
 	return r, nil
 }
 
@@ -60,7 +61,8 @@ func (p *Package) Release(ver string) (*Release, error) {
 				return nil, err
 			}
 
-			r := NewRelease(p.store, p.Namespace, p.Name, ver, rm.Digest, rm.CreatedAt, rm.Size)
+			r := NewRelease(p.store, p.Namespace, p.Name, ver, rm.Digest, rm.CreatedAt, rm.Size,
+				rm.Dependencies.ToMap())
 			return r, nil
 		}
 	}
@@ -78,7 +80,8 @@ func (p *Package) Releases() ([]Release, error) {
 	var releases []Release
 
 	for _, rm := range versions {
-		r := NewRelease(p.store, p.Namespace, p.Name, rm.Version, rm.Digest, rm.CreatedAt, rm.Size)
+		r := NewRelease(p.store, p.Namespace, p.Name, rm.Version, rm.Digest, rm.CreatedAt, rm.Size,
+			rm.Dependencies.ToMap())
 		releases = append(releases, *r)
 	}
 

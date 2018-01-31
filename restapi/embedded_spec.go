@@ -1030,6 +1030,20 @@ func init() {
         }
       }
     },
+    "Dependency": {
+      "type": "object",
+      "title": "dependency",
+      "properties": {
+        "constraint": {
+          "description": "Dependency constraint",
+          "type": "string"
+        },
+        "name": {
+          "description": "Dependency name",
+          "type": "string"
+        }
+      }
+    },
     "Error": {
       "type": "object",
       "properties": {
@@ -1187,6 +1201,14 @@ func init() {
       "type": "object",
       "title": "descriptor",
       "properties": {
+        "dependencies": {
+          "description": "dependencies",
+          "type": "array",
+          "title": "dependencies",
+          "items": {
+            "$ref": "#/definitions/Dependency"
+          }
+        },
         "digest": {
           "description": "content digest",
           "type": "string",

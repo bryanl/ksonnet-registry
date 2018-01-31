@@ -16,11 +16,12 @@ type Release struct {
 	Size      int64
 	pkgName   string
 	nsName    string
+	Deps      map[string]string
 	store     store.Store
 }
 
 // NewRelease creates a new instance of Release.
-func NewRelease(s store.Store, ns, pkg, version, digest string, createdAt time.Time, size int64) *Release {
+func NewRelease(s store.Store, ns, pkg, version, digest string, createdAt time.Time, size int64, deps map[string]string) *Release {
 	r := &Release{
 		nsName:    ns,
 		pkgName:   pkg,
@@ -28,6 +29,7 @@ func NewRelease(s store.Store, ns, pkg, version, digest string, createdAt time.T
 		Digest:    digest,
 		CreatedAt: createdAt,
 		Size:      size,
+		Deps:      deps,
 		store:     s,
 	}
 

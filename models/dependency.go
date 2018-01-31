@@ -12,28 +12,19 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// PartDescriptor descriptor
-//
-// part descriptor
-// swagger:model PartDescriptor
-type PartDescriptor struct {
+// Dependency dependency
+// swagger:model Dependency
+type Dependency struct {
 
-	// dependencies
-	Dependencies PartDescriptorDependencies `json:"dependencies"`
+	// Dependency constraint
+	Constraint string `json:"constraint,omitempty"`
 
-	// digest
-	//
-	// content digest
-	Digest string `json:"digest,omitempty"`
-
-	// content-size
-	//
-	// blob size
-	Size int64 `json:"size,omitempty"`
+	// Dependency name
+	Name string `json:"name,omitempty"`
 }
 
-// Validate validates this part descriptor
-func (m *PartDescriptor) Validate(formats strfmt.Registry) error {
+// Validate validates this dependency
+func (m *Dependency) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if len(res) > 0 {
@@ -43,7 +34,7 @@ func (m *PartDescriptor) Validate(formats strfmt.Registry) error {
 }
 
 // MarshalBinary interface implementation
-func (m *PartDescriptor) MarshalBinary() ([]byte, error) {
+func (m *Dependency) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -51,8 +42,8 @@ func (m *PartDescriptor) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *PartDescriptor) UnmarshalBinary(b []byte) error {
-	var res PartDescriptor
+func (m *Dependency) UnmarshalBinary(b []byte) error {
+	var res Dependency
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

@@ -802,6 +802,23 @@ definitions:
         format: int64
         title: content-size
         description: blob size
+      dependencies:
+        type: array
+        title: dependencies
+        description: dependencies
+        items:
+          $ref: "#/definitions/Dependency"
+
+  Dependency:
+    type: object
+    title: dependency
+    properties:
+      name:
+        type: string
+        description: Dependency name
+      constraint:
+        type: string
+        description: Dependency constraint
 
   Manifest:
     type: object

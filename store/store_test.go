@@ -7,10 +7,27 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestDependencies_ToMap(t *testing.T) {
+	deps := Dependencies{
+		{Name: "one", Constraint: "1.0"},
+		{Name: "two", Constraint: "2.0"},
+		{Name: "three", Constraint: "3.0"},
+	}
+
+	expected := map[string]string{
+		"one":   "1.0",
+		"two":   "2.0",
+		"three": "3.0",
+	}
+
+	require.Equal(t, expected, deps.ToMap())
+}
 
 func TestStore_Namespaces(t *testing.T) {
 	fs := afero.NewMemMapFs()
@@ -24,8 +41,7 @@ func TestStore_Namespaces(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, names, 0)
 
-	err = s.fs.MkdirAll(filepath.Join(s.dir, "ns"), dirMode)
-	require.NoError(t, err)
+	mkdirAll(t, fs, filepath.Join(s.dir, "ns"))
 
 	names, err = s.Namespaces()
 	require.NoError(t, err)
@@ -43,8 +59,7 @@ func TestStore_Packages(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, names, 0)
 
-	err = s.fs.MkdirAll(filepath.Join(s.dir, "ns", "pkg"), dirMode)
-	require.NoError(t, err)
+	mkdirAll(t, fs, filepath.Join(s.dir, "ns", "pkg"))
 
 	names, err = s.Packages("ns")
 	require.NoError(t, err)
@@ -63,11 +78,14 @@ func TestStore_Releases(t *testing.T) {
 	require.Len(t, names, 0)
 
 	p := filepath.Join(s.dir, "ns", "pkg", "releases")
-	err = s.fs.MkdirAll(p, dirMode)
-	require.NoError(t, err)
+	mkdirAll(t, fs, p)
 
 	digestDir := filepath.Join(s.dir, "ns", "pkg", "digests", "12345")
 
+	partsName := filepath.Join(digestDir, "parts.yaml")
+	b, err := ioutil.ReadFile("testdata/parts.yaml")
+	require.NoError(t, err)
+	writeFile(t, fs, partsName, b)
 	writeFile(t, fs, filepath.Join(p, "0.1.0"), []byte("12345"))
 	writeFile(t, fs, filepath.Join(digestDir, "part.tar.gz"), []byte("contents"))
 
@@ -92,7 +110,13 @@ func TestStore_CreateRelease(t *testing.T) {
 	digest := "e2a28469635e14461126bfd0fcdf7d47c9d1516444e2e5ace79d139d1cbd1d48"
 	assert.Equal(t, rm.Digest, digest)
 
-	fi, err := fs.Stat(filepath.Join(s.dir, "ns", "pkg", "digests", digest, "part.tar.gz"))
+	digestDir := filepath.Join(s.dir, "ns", "pkg", "digests", digest)
+	partsName := filepath.Join(digestDir, "parts.yaml")
+	b, err = ioutil.ReadFile("testdata/parts.yaml")
+	require.NoError(t, err)
+	writeFile(t, fs, partsName, b)
+
+	fi, err := fs.Stat(filepath.Join(digestDir, "part.tar.gz"))
 	assert.NoError(t, err)
 	assert.Equal(t, rm.CreatedAt, fi.ModTime())
 	assert.Equal(t, rm.Size, fi.Size())
@@ -124,8 +148,7 @@ func TestStore_RemoveRelease(t *testing.T) {
 	releaseDir := filepath.Join(s.dir, "ns", "pkg", "releases")
 
 	for _, dir := range []string{digestDir, releaseDir} {
-		err = fs.MkdirAll(dir, dirMode)
-		require.NoError(t, err)
+		mkdirAll(t, fs, dir)
 	}
 
 	writeFile(t, fs, filepath.Join(releaseDir, "0.1.0"), []byte("12345"))
@@ -146,11 +169,13 @@ func TestStore_Release(t *testing.T) {
 		ver    string
 		digest string
 		isErr  bool
+		depLen int
 	}{
 		{
 			name:   "existing release",
 			ver:    "0.1.0",
 			digest: "12345",
+			depLen: 11,
 		},
 		{
 			name:  "non existent release",
@@ -168,17 +193,20 @@ func TestStore_Release(t *testing.T) {
 			defer s.Close()
 
 			releaseDir := filepath.Join(s.dir, "ns", "pkg", "releases")
-			err = fs.MkdirAll(releaseDir, dirMode)
-			require.NoError(t, err)
+			mkdirAll(t, fs, releaseDir)
 
 			writeFile(t, fs, filepath.Join(releaseDir, "0.1.0"), []byte("12345"))
 
 			digestDir := filepath.Join(s.dir, "ns", "pkg", "digests", "12345")
-			err = fs.MkdirAll(digestDir, dirMode)
-			require.NoError(t, err)
+			mkdirAll(t, fs, digestDir)
 
 			blobName := filepath.Join(digestDir, "part.tar.gz")
 			writeFile(t, fs, blobName, []byte("contents"))
+
+			partsName := filepath.Join(digestDir, "parts.yaml")
+			b, err := ioutil.ReadFile("testdata/parts.yaml")
+			require.NoError(t, err)
+			writeFile(t, fs, partsName, b)
 
 			aTime := time.Date(2009, time.January, 20, 0, 0, 0, 0, time.UTC)
 
@@ -192,13 +220,12 @@ func TestStore_Release(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 
-				expected := ReleaseMetadata{
-					Digest:    "12345",
-					Size:      8,
-					CreatedAt: aTime,
-					Version:   "0.1.0",
-				}
-				assert.Equal(t, expected, rm)
+				spew.Dump(rm)
+				assert.Equal(t, "12345", rm.Digest)
+				assert.Equal(t, int64(8), rm.Size)
+				assert.Equal(t, aTime, rm.CreatedAt)
+				assert.Equal(t, "0.1.0", rm.Version)
+				assert.Len(t, rm.Dependencies, tc.depLen)
 			}
 		})
 	}
@@ -212,8 +239,7 @@ func TestStore_Pull(t *testing.T) {
 	defer s.Close()
 
 	digestDir := filepath.Join(s.dir, "ns", "pkg", "digests", "12345")
-	err = fs.MkdirAll(digestDir, dirMode)
-	require.NoError(t, err)
+	mkdirAll(t, fs, digestDir)
 
 	b, err := ioutil.ReadFile("testdata/node.tar.gz")
 	require.NoError(t, err)
@@ -231,5 +257,10 @@ func TestStore_Pull(t *testing.T) {
 
 func writeFile(t *testing.T, fs afero.Fs, name string, contents []byte) {
 	err := afero.WriteFile(fs, name, contents, fileMode)
+	require.NoError(t, err)
+}
+
+func mkdirAll(t *testing.T, fs afero.Fs, dir string) {
+	err := fs.MkdirAll(dir, dirMode)
 	require.NoError(t, err)
 }

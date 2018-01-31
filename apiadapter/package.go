@@ -58,13 +58,24 @@ func ShowPackage(s store.Store, params package_operations.ShowPackageReleasesPar
 	var manifests models.PackageManifest
 
 	for _, r := range releases {
+
+		var deps models.PartDescriptorDependencies
+		for dep, con := range r.Deps {
+			md := &models.Dependency{
+				Name:       dep,
+				Constraint: con,
+			}
+			deps = append(deps, md)
+		}
+
 		manifest := &models.Manifest{
 			Package:   r.Package(),
 			Release:   r.Version,
 			CreatedAt: strfmt.DateTime(r.CreatedAt),
 			Content: &models.PartDescriptor{
-				Digest: r.Digest,
-				Size:   r.Size,
+				Digest:       r.Digest,
+				Size:         r.Size,
+				Dependencies: deps,
 			},
 		}
 

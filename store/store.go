@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
+	yaml "gopkg.in/yaml.v2"
 )
 
 const (
@@ -33,10 +34,31 @@ var (
 
 // ReleaseMetadata contains release metadata.
 type ReleaseMetadata struct {
-	Digest    string
-	Size      int64
-	CreatedAt time.Time
-	Version   string
+	Digest       string
+	Size         int64
+	CreatedAt    time.Time
+	Version      string
+	Dependencies Dependencies
+}
+
+// Dependency specifies a release dependency.
+type Dependency struct {
+	Name       string
+	Constraint string
+}
+
+// Dependencies are a slice of Dependency.
+type Dependencies []Dependency
+
+// ToMap converts the Dependencies to a map.
+func (ds Dependencies) ToMap() map[string]string {
+	m := make(map[string]string)
+
+	for _, d := range ds {
+		m[d.Name] = d.Constraint
+	}
+
+	return m
 }
 
 // Store manages files
@@ -293,16 +315,37 @@ func (s *TempStore) Release(ns, pkg, release string) (ReleaseMetadata, error) {
 
 	rm.Digest = string(b)
 
-	blobPath := filepath.Join(s.dir, ns, pkg, "digests", string(rm.Digest), blobName)
+	digestPath := filepath.Join(s.dir, ns, pkg, "digests", string(rm.Digest))
+	blobPath := filepath.Join(digestPath, blobName)
 
 	fi, err := s.fs.Stat(blobPath)
 	if err != nil {
 		return rm, err
 	}
 
+	// open parts.yaml
+	b, err = afero.ReadFile(s.fs, filepath.Join(digestPath, "parts.yaml"))
+	if err != nil {
+		return rm, err
+	}
+
+	var pc partsConfig
+	if err := yaml.Unmarshal(b, &pc); err != nil {
+		return rm, err
+	}
+
 	rm.Size = fi.Size()
 	rm.CreatedAt = fi.ModTime()
 	rm.Version = release
+
+	for k, v := range pc.Dependencies {
+		dep := Dependency{
+			Name:       k,
+			Constraint: v,
+		}
+
+		rm.Dependencies = append(rm.Dependencies, dep)
+	}
 
 	return rm, nil
 }
