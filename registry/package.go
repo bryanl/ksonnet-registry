@@ -34,18 +34,18 @@ func (p *Package) CreateRelease(version string, data []byte) (*Release, error) {
 
 	logrus.WithField("releases", releases).Info("current releases")
 
-	for _, name := range releases {
-		if version == name {
+	for _, rm := range releases {
+		if version == rm.Version {
 			return nil, errors.Errorf("release %q already exists", version)
 		}
 	}
 
-	digest, err := p.store.CreateRelease(p.Namespace, p.Name, version, data)
+	rm, err := p.store.CreateRelease(p.Namespace, p.Name, version, data)
 	if err != nil {
 		return nil, err
 	}
 
-	r := NewRelease(p.store, p.Namespace, p.Name, version, digest)
+	r := NewRelease(p.store, p.Namespace, p.Name, version, rm.Digest, rm.CreatedAt, rm.Size)
 	return r, nil
 }
 
@@ -56,14 +56,14 @@ func (p *Package) Release(ver string) (*Release, error) {
 		return nil, err
 	}
 
-	for _, name := range releases {
-		if name == ver {
-			digest, err := p.store.Digest(p.Namespace, p.Name, ver)
+	for _, rm := range releases {
+		if rm.Version == ver {
+			rm, err := p.store.Release(p.Namespace, p.Name, ver)
 			if err != nil {
 				return nil, err
 			}
 
-			r := NewRelease(p.store, p.Namespace, p.Name, ver, digest)
+			r := NewRelease(p.store, p.Namespace, p.Name, ver, rm.Digest, rm.CreatedAt, rm.Size)
 			return r, nil
 		}
 	}
@@ -80,13 +80,8 @@ func (p *Package) Releases() ([]Release, error) {
 
 	var releases []Release
 
-	for _, v := range versions {
-		digest, err := p.store.Digest(p.Namespace, p.Name, v)
-		if err != nil {
-			return nil, err
-		}
-
-		r := NewRelease(p.store, p.Namespace, p.Name, v, digest)
+	for _, rm := range versions {
+		r := NewRelease(p.store, p.Namespace, p.Name, rm.Version, rm.Digest, rm.CreatedAt, rm.Size)
 		releases = append(releases, *r)
 	}
 

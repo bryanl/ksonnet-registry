@@ -10,6 +10,7 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -30,14 +31,22 @@ var (
 	ErrNotFound = errors.New("not found")
 )
 
+// ReleaseMetadata contains release metadata.
+type ReleaseMetadata struct {
+	Digest    string
+	Size      int64
+	CreatedAt time.Time
+	Version   string
+}
+
 // Store manages files
 type Store interface {
 	Namespaces() ([]string, error)
 	Packages(ns string) ([]string, error)
-	Releases(ns string, pkg string) ([]string, error)
-	CreateRelease(ns, pkg, release string, data []byte) (string, error)
+	Releases(ns string, pkg string) ([]ReleaseMetadata, error)
+	CreateRelease(ns, pkg, release string, data []byte) (ReleaseMetadata, error)
 	RemoveRelease(ns, pkg, release string) error
-	Digest(ns, pkg, release string) (string, error)
+	Release(ns, pkg, release string) (ReleaseMetadata, error)
 	Pull(ns, pkg, digest string) (multipart.File, error)
 
 	Close() error
@@ -130,12 +139,12 @@ func (s *TempStore) Packages(ns string) ([]string, error) {
 }
 
 // Releases returns releases in a package.
-func (s *TempStore) Releases(ns string, pkg string) ([]string, error) {
+func (s *TempStore) Releases(ns string, pkg string) ([]ReleaseMetadata, error) {
 	dir := filepath.Join(s.dir, ns, pkg, "releases")
 
 	if _, err := s.fs.Stat(dir); err != nil {
 		if os.IsNotExist(err) {
-			return make([]string, 0), nil
+			return make([]ReleaseMetadata, 0), nil
 		}
 
 		return nil, err
@@ -146,33 +155,40 @@ func (s *TempStore) Releases(ns string, pkg string) ([]string, error) {
 		return nil, err
 	}
 
-	var releases []string
+	var releases []ReleaseMetadata
 
 	for _, file := range files {
 		if !file.IsDir() {
-			releases = append(releases, file.Name())
+			rm, err := s.Release(ns, pkg, file.Name())
+			if err != nil {
+				return nil, err
+			}
+
+			releases = append(releases, rm)
 		}
 	}
 
 	return releases, nil
 }
 
-// CreateRelease creates a release in the store. It returns the digest or an error.
-func (s *TempStore) CreateRelease(ns, pkg, release string, data []byte) (string, error) {
+// CreateRelease creates a release in the store. It returns the release metadata or an error.
+func (s *TempStore) CreateRelease(ns, pkg, release string, data []byte) (ReleaseMetadata, error) {
+	var rm ReleaseMetadata
+
 	d := digest(data)
 	digestDir := filepath.Join(s.dir, ns, pkg, "digests", d)
 	releaseDir := filepath.Join(s.dir, ns, pkg, "releases")
 
 	if _, err := s.fs.Stat(digestDir); err == nil {
-		return "", errors.Errorf("digest %q already exists", d)
+		return rm, errors.Errorf("digest %q already exists", d)
 	}
 
 	if _, err := s.fs.Stat(filepath.Join(releaseDir, release)); err == nil {
-		return "", errors.Errorf("release %q already exists", release)
+		return rm, errors.Errorf("release %q already exists", release)
 	}
 
 	if err := s.fs.MkdirAll(digestDir, dirMode); err != nil {
-		return "", err
+		return rm, err
 	}
 
 	partData := filepath.Join(digestDir, blobName)
@@ -181,36 +197,46 @@ func (s *TempStore) CreateRelease(ns, pkg, release string, data []byte) (string,
 
 	tmpDir, err := afero.TempDir(s.fs, "", "extract-part")
 	if err != nil {
-		return "", err
+		return rm, err
 	}
 	defer s.fs.RemoveAll(tmpDir)
 
 	r := bytes.NewReader(data)
-	if err := s.extractTarGz(tmpDir, r); err != nil {
-		return "", errors.Wrap(err, "blob was not a gzip'd tar file")
+	if err = s.extractTarGz(tmpDir, r); err != nil {
+		return rm, errors.Wrap(err, "blob was not a gzip'd tar file")
 	}
 
-	if err := afero.WriteFile(s.fs, partData, data, fileMode); err != nil {
-		return "", err
+	if err = afero.WriteFile(s.fs, partData, data, fileMode); err != nil {
+		return rm, err
 	}
 
-	if err := s.copyFile(filepath.Join(tmpDir, "parts.yaml"), partConfig); err != nil {
-		return "", err
+	if err = s.copyFile(filepath.Join(tmpDir, "parts.yaml"), partConfig); err != nil {
+		return rm, err
 	}
 
-	if err := s.copyFile(filepath.Join(tmpDir, "README.md"), partDoc); err != nil {
-		return "", err
+	if err = s.copyFile(filepath.Join(tmpDir, "README.md"), partDoc); err != nil {
+		return rm, err
 	}
 
-	if err := s.fs.MkdirAll(releaseDir, dirMode); err != nil {
-		return "", err
+	if err = s.fs.MkdirAll(releaseDir, dirMode); err != nil {
+		return rm, err
 	}
 
-	if err := afero.WriteFile(s.fs, filepath.Join(releaseDir, release), []byte(d), fileMode); err != nil {
-		return "", err
+	if err = afero.WriteFile(s.fs, filepath.Join(releaseDir, release), []byte(d), fileMode); err != nil {
+		return rm, err
 	}
 
-	return d, nil
+	fi, err := s.fs.Stat(partData)
+	if err != nil {
+		return rm, err
+	}
+
+	rm.Digest = d
+	rm.CreatedAt = fi.ModTime()
+	rm.Size = fi.Size()
+	rm.Version = release
+
+	return rm, nil
 }
 
 // RemoveRelease removes a release.
@@ -246,24 +272,39 @@ func (s *TempStore) RemoveRelease(ns, pkg, ver string) error {
 	return s.fs.RemoveAll(digestPath)
 }
 
-// Digest returns the digest for a release.
-func (s *TempStore) Digest(ns, pkg, release string) (string, error) {
+// Release returns ReleaseMetdata for a release or an error.
+func (s *TempStore) Release(ns, pkg, release string) (ReleaseMetadata, error) {
+	var rm ReleaseMetadata
+
 	releaseName := filepath.Join(s.dir, ns, pkg, "releases", release)
 
 	if _, err := s.fs.Stat(releaseName); err != nil {
 		if os.IsNotExist(err) {
-			return "", errors.Errorf("release %q does not exist", release)
+			return rm, errors.Errorf("release %q does not exist", release)
 		}
 
-		return "", err
+		return rm, err
 	}
 
 	b, err := afero.ReadFile(s.fs, releaseName)
 	if err != nil {
-		return "", err
+		return rm, err
 	}
 
-	return string(b), nil
+	rm.Digest = string(b)
+
+	blobPath := filepath.Join(s.dir, ns, pkg, "digests", string(rm.Digest), blobName)
+
+	fi, err := s.fs.Stat(blobPath)
+	if err != nil {
+		return rm, err
+	}
+
+	rm.Size = fi.Size()
+	rm.CreatedAt = fi.ModTime()
+	rm.Version = release
+
+	return rm, nil
 }
 
 // Pull pulls a digest from a package.

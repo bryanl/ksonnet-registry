@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
@@ -65,12 +66,14 @@ func TestStore_Releases(t *testing.T) {
 	err = s.fs.MkdirAll(p, dirMode)
 	require.NoError(t, err)
 
-	err = afero.WriteFile(fs, filepath.Join(p, "0.1.0"), []byte("12345"), fileMode)
-	require.NoError(t, err)
+	digestDir := filepath.Join(s.dir, "ns", "pkg", "digests", "12345")
 
-	names, err = s.Releases("ns", "pkg")
+	writeFile(t, fs, filepath.Join(p, "0.1.0"), []byte("12345"))
+	writeFile(t, fs, filepath.Join(digestDir, "part.tar.gz"), []byte("contents"))
+
+	rms, err := s.Releases("ns", "pkg")
 	require.NoError(t, err)
-	require.Len(t, names, 1)
+	require.Len(t, rms, 1)
 }
 
 func TestStore_CreateRelease(t *testing.T) {
@@ -83,11 +86,17 @@ func TestStore_CreateRelease(t *testing.T) {
 	b, err := ioutil.ReadFile("testdata/node.tar.gz")
 	require.NoError(t, err)
 
-	d, err := s.CreateRelease("ns", "pkg", "0.1.0", b)
+	rm, err := s.CreateRelease("ns", "pkg", "0.1.0", b)
 	require.NoError(t, err)
 
 	digest := "e2a28469635e14461126bfd0fcdf7d47c9d1516444e2e5ace79d139d1cbd1d48"
-	assert.Equal(t, digest, d)
+	assert.Equal(t, rm.Digest, digest)
+
+	fi, err := fs.Stat(filepath.Join(s.dir, "ns", "pkg", "digests", digest, "part.tar.gz"))
+	assert.NoError(t, err)
+	assert.Equal(t, rm.CreatedAt, fi.ModTime())
+	assert.Equal(t, rm.Size, fi.Size())
+	assert.Equal(t, rm.Version, "0.1.0")
 
 	digestFiles := []string{"part.tar.gz", "parts.yaml", "README.md"}
 	for _, f := range digestFiles {
@@ -119,8 +128,7 @@ func TestStore_RemoveRelease(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	err = afero.WriteFile(fs, filepath.Join(releaseDir, "0.1.0"), []byte("12345"), fileMode)
-	require.NoError(t, err)
+	writeFile(t, fs, filepath.Join(releaseDir, "0.1.0"), []byte("12345"))
 
 	err = s.RemoveRelease("ns", "pkg", "0.1.0")
 	require.NoError(t, err)
@@ -132,7 +140,7 @@ func TestStore_RemoveRelease(t *testing.T) {
 	assert.True(t, os.IsNotExist(err))
 }
 
-func TestStore_Digest(t *testing.T) {
+func TestStore_Release(t *testing.T) {
 	cases := []struct {
 		name   string
 		ver    string
@@ -163,16 +171,34 @@ func TestStore_Digest(t *testing.T) {
 			err = fs.MkdirAll(releaseDir, dirMode)
 			require.NoError(t, err)
 
-			err = afero.WriteFile(fs, filepath.Join(releaseDir, "0.1.0"), []byte("12345"), fileMode)
+			writeFile(t, fs, filepath.Join(releaseDir, "0.1.0"), []byte("12345"))
+
+			digestDir := filepath.Join(s.dir, "ns", "pkg", "digests", "12345")
+			err = fs.MkdirAll(digestDir, dirMode)
 			require.NoError(t, err)
 
-			d, err := s.Digest("ns", "pkg", tc.ver)
+			blobName := filepath.Join(digestDir, "part.tar.gz")
+			writeFile(t, fs, blobName, []byte("contents"))
+
+			aTime := time.Date(2009, time.January, 20, 0, 0, 0, 0, time.UTC)
+
+			err = fs.Chtimes(blobName, aTime, aTime)
+			require.NoError(t, err)
+
+			rm, err := s.Release("ns", "pkg", tc.ver)
 
 			if tc.isErr {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				assert.Equal(t, tc.digest, d)
+
+				expected := ReleaseMetadata{
+					Digest:    "12345",
+					Size:      8,
+					CreatedAt: aTime,
+					Version:   "0.1.0",
+				}
+				assert.Equal(t, expected, rm)
 			}
 		})
 	}
@@ -192,8 +218,7 @@ func TestStore_Pull(t *testing.T) {
 	b, err := ioutil.ReadFile("testdata/node.tar.gz")
 	require.NoError(t, err)
 
-	err = afero.WriteFile(fs, filepath.Join(digestDir, "part.tar.gz"), b, fileMode)
-	require.NoError(t, err)
+	writeFile(t, fs, filepath.Join(digestDir, "part.tar.gz"), b)
 
 	f, err := s.Pull("ns", "pkg", "12345")
 	require.NoError(t, err)
@@ -202,4 +227,9 @@ func TestStore_Pull(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, b, b2)
+}
+
+func writeFile(t *testing.T, fs afero.Fs, name string, contents []byte) {
+	err := afero.WriteFile(fs, name, contents, fileMode)
+	require.NoError(t, err)
 }

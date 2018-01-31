@@ -14,17 +14,19 @@ type Release struct {
 	Version   string
 	Digest    string
 	CreatedAt time.Time
+	Size      int64
 	store     store.Store
 }
 
 // NewRelease creates a new instance of Release.
-func NewRelease(s store.Store, ns, pkg, version, digest string) *Release {
+func NewRelease(s store.Store, ns, pkg, version, digest string, createdAt time.Time, size int64) *Release {
 	r := &Release{
 		Namespace: ns,
 		Package:   pkg,
 		Version:   version,
 		Digest:    digest,
-		CreatedAt: time.Now(),
+		CreatedAt: createdAt,
+		Size:      size,
 		store:     s,
 	}
 
