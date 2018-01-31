@@ -233,11 +233,11 @@ func (s *TempStore) CreateRelease(ns, pkg, release string, data []byte) (Release
 	}
 
 	if err = s.copyFile(filepath.Join(tmpDir, "parts.yaml"), partConfig); err != nil {
-		return rm, err
+		return rm, errors.New("part is missing parts.yaml")
 	}
 
 	if err = s.copyFile(filepath.Join(tmpDir, "README.md"), partDoc); err != nil {
-		return rm, err
+		return rm, errors.New("part is missing README.md")
 	}
 
 	if err = s.fs.MkdirAll(releaseDir, dirMode); err != nil {
