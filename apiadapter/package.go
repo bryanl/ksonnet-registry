@@ -62,7 +62,7 @@ func ShowPackage(s store.Store, params package_operations.ShowPackageReleasesPar
 			Package:   r.Package,
 			Release:   r.Version,
 			CreatedAt: strfmt.DateTime(r.CreatedAt),
-			Content: &models.OciDescriptor{
+			Content: &models.PartDescriptor{
 				Digest: r.Digest,
 				Size:   r.Size,
 			},

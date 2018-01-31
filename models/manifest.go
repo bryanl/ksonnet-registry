@@ -17,7 +17,7 @@ import (
 type Manifest struct {
 
 	// content
-	Content *OciDescriptor `json:"content,omitempty"`
+	Content *PartDescriptor `json:"content,omitempty"`
 
 	// created-at
 	//

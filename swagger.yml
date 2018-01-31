@@ -788,9 +788,9 @@ definitions:
     items:
       $ref: "#/definitions/Manifest"
 
-  OciDescriptor:
+  PartDescriptor:
     type: object
-    description: OCI descriptor
+    description: part descriptor
     title: descriptor
     properties:
       digest:
@@ -802,18 +802,6 @@ definitions:
         format: int64
         title: content-size
         description: blob size
-      mediaType:
-        type: string
-        title: media-type
-        description: content type
-      urls:
-        type: array
-        title: urls
-        description: download mirrors
-        items:
-          type: string
-          title: url
-          description: url
 
   Manifest:
     type: object
@@ -841,7 +829,7 @@ definitions:
         description: release name
         title: release-name
       content:
-        $ref: "#/definitions/OciDescriptor"
+        $ref: "#/definitions/PartDescriptor"
 
   Packages:
     type: array

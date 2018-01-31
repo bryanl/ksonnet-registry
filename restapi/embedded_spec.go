@@ -1053,7 +1053,7 @@ func init() {
       "title": "manifest",
       "properties": {
         "content": {
-          "$ref": "#/definitions/OciDescriptor"
+          "$ref": "#/definitions/PartDescriptor"
         },
         "created_at": {
           "description": "creation data",
@@ -1080,39 +1080,6 @@ func init() {
           "description": "release name",
           "type": "string",
           "title": "release-name"
-        }
-      }
-    },
-    "OciDescriptor": {
-      "description": "OCI descriptor",
-      "type": "object",
-      "title": "descriptor",
-      "properties": {
-        "digest": {
-          "description": "content digest",
-          "type": "string",
-          "title": "digest"
-        },
-        "mediaType": {
-          "description": "content type",
-          "type": "string",
-          "title": "media-type"
-        },
-        "size": {
-          "description": "blob size",
-          "type": "integer",
-          "format": "int64",
-          "title": "content-size"
-        },
-        "urls": {
-          "description": "download mirrors",
-          "type": "array",
-          "title": "urls",
-          "items": {
-            "description": "url",
-            "type": "string",
-            "title": "url"
-          }
         }
       }
     },
@@ -1212,6 +1179,24 @@ func init() {
             "type": "string",
             "title": "visibility"
           }
+        }
+      }
+    },
+    "PartDescriptor": {
+      "description": "part descriptor",
+      "type": "object",
+      "title": "descriptor",
+      "properties": {
+        "digest": {
+          "description": "content digest",
+          "type": "string",
+          "title": "digest"
+        },
+        "size": {
+          "description": "blob size",
+          "type": "integer",
+          "format": "int64",
+          "title": "content-size"
         }
       }
     },

@@ -12,41 +12,26 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// OciDescriptor descriptor
+// PartDescriptor descriptor
 //
-// OCI descriptor
-// swagger:model OciDescriptor
-type OciDescriptor struct {
+// part descriptor
+// swagger:model PartDescriptor
+type PartDescriptor struct {
 
 	// digest
 	//
 	// content digest
 	Digest string `json:"digest,omitempty"`
 
-	// media-type
-	//
-	// content type
-	MediaType string `json:"mediaType,omitempty"`
-
 	// content-size
 	//
 	// blob size
 	Size int64 `json:"size,omitempty"`
-
-	// urls
-	//
-	// download mirrors
-	Urls []string `json:"urls"`
 }
 
-// Validate validates this oci descriptor
-func (m *OciDescriptor) Validate(formats strfmt.Registry) error {
+// Validate validates this part descriptor
+func (m *PartDescriptor) Validate(formats strfmt.Registry) error {
 	var res []error
-
-	if err := m.validateUrls(formats); err != nil {
-		// prop
-		res = append(res, err)
-	}
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
@@ -54,17 +39,8 @@ func (m *OciDescriptor) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *OciDescriptor) validateUrls(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Urls) { // not required
-		return nil
-	}
-
-	return nil
-}
-
 // MarshalBinary interface implementation
-func (m *OciDescriptor) MarshalBinary() ([]byte, error) {
+func (m *PartDescriptor) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -72,8 +48,8 @@ func (m *OciDescriptor) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *OciDescriptor) UnmarshalBinary(b []byte) error {
-	var res OciDescriptor
+func (m *PartDescriptor) UnmarshalBinary(b []byte) error {
+	var res PartDescriptor
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

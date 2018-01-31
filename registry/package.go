@@ -6,7 +6,6 @@ import (
 
 	"github.com/bryanl/ksonnet-registry/store"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // Package is a package in a ksonnet registry namespace.
@@ -31,8 +30,6 @@ func (p *Package) CreateRelease(version string, data []byte) (*Release, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	logrus.WithField("releases", releases).Info("current releases")
 
 	for _, rm := range releases {
 		if version == rm.Version {
