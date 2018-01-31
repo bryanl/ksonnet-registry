@@ -2,6 +2,7 @@ package registry
 
 import (
 	"encoding/base64"
+	"fmt"
 	"time"
 
 	"github.com/bryanl/ksonnet-registry/store"
@@ -9,20 +10,20 @@ import (
 
 // Release is a released version of a package.
 type Release struct {
-	Namespace string
-	Package   string
 	Version   string
 	Digest    string
 	CreatedAt time.Time
 	Size      int64
+	pkgName   string
+	nsName    string
 	store     store.Store
 }
 
 // NewRelease creates a new instance of Release.
 func NewRelease(s store.Store, ns, pkg, version, digest string, createdAt time.Time, size int64) *Release {
 	r := &Release{
-		Namespace: ns,
-		Package:   pkg,
+		nsName:    ns,
+		pkgName:   pkg,
 		Version:   version,
 		Digest:    digest,
 		CreatedAt: createdAt,
@@ -33,9 +34,15 @@ func NewRelease(s store.Store, ns, pkg, version, digest string, createdAt time.T
 	return r
 }
 
+// Package is the package name for this release. It is the namespace combined with
+// the package.
+func (r *Release) Package() string {
+	return fmt.Sprintf("%s/%s", r.nsName, r.pkgName)
+}
+
 // Delete removes a release.
 func (r *Release) Delete() error {
-	return r.store.RemoveRelease(r.Namespace, r.Package, r.Version)
+	return r.store.RemoveRelease(r.nsName, r.pkgName, r.Version)
 }
 
 // CreateRelease creates a release.

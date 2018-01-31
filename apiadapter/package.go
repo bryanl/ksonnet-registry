@@ -30,7 +30,7 @@ func CreatePackage(s store.Store, params package_operations.CreatePackageParams)
 	}
 
 	payload := &models.Package{
-		Package:   release.Package,
+		Package:   release.Package(),
 		Release:   release.Version,
 		CreatedAt: strfmt.DateTime(release.CreatedAt),
 	}
@@ -59,7 +59,7 @@ func ShowPackage(s store.Store, params package_operations.ShowPackageReleasesPar
 
 	for _, r := range releases {
 		manifest := &models.Manifest{
-			Package:   r.Package,
+			Package:   r.Package(),
 			Release:   r.Version,
 			CreatedAt: strfmt.DateTime(r.CreatedAt),
 			Content: &models.PartDescriptor{
