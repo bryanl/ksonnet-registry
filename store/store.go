@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -74,48 +73,60 @@ type Store interface {
 	Close() error
 }
 
-// TempStoreOpt is a configuration option for TempStore.
-type TempStoreOpt func(*TempStore)
+// FileSystemStoreOpt is a configuration option for FileSystemStore.
+type FileSystemStoreOpt func(*FileSystemStore)
 
-// TempStoreOptFS configures the afero Fs for the the TempStore.
-func TempStoreOptFS(fs afero.Fs) TempStoreOpt {
-	return func(s *TempStore) {
+// FileSystemStoreOptFS configures the afero Fs for the the FileSystemStore.
+func FileSystemStoreOptFS(fs afero.Fs) FileSystemStoreOpt {
+	return func(s *FileSystemStore) {
 		s.fs = fs
 	}
 }
 
-// TempStore stores the registry in a temp directory.
-type TempStore struct {
-	dir string
-	fs  afero.Fs
+// FileSystemStoreOptClose sets the close function for FileSystemStore.
+func FileSystemStoreOptClose(fn func() error) FileSystemStoreOpt {
+	return func(s *FileSystemStore) {
+		s.closeFn = fn
+	}
 }
 
-var _ Store = (*TempStore)(nil)
+// FileSystemStoreOptRoot sets the dir for the FileSystemStore.
+func FileSystemStoreOptRoot(dir string) FileSystemStoreOpt {
+	return func(s *FileSystemStore) {
+		s.dir = dir
+	}
+}
 
-// NewTempStore creates an instance of TempStore.
-func NewTempStore(opts ...TempStoreOpt) (*TempStore, error) {
-	ts := &TempStore{
-		fs: afero.NewOsFs(),
+// FileSystemStore stores the registry on the file system.
+type FileSystemStore struct {
+	dir     string
+	fs      afero.Fs
+	closeFn func() error
+}
+
+var _ Store = (*FileSystemStore)(nil)
+
+// NewFileSystemStore creates an instance of FileSystemStore.
+func NewFileSystemStore(opts ...FileSystemStoreOpt) (*FileSystemStore, error) {
+	ts := &FileSystemStore{
+		dir:     "/data",
+		fs:      afero.NewOsFs(),
+		closeFn: func() error { return nil },
 	}
 
 	for _, opt := range opts {
 		opt(ts)
 	}
 
-	dir, err := afero.TempDir(ts.fs, "", "ksonnet-registry")
-	if err != nil {
+	if _, err := ts.fs.Stat(ts.dir); err != nil {
 		return nil, err
 	}
-
-	ts.dir = dir
-
-	logrus.WithField("root", dir).Info("initialized store")
 
 	return ts, nil
 }
 
 // Namespaces returns a list of namespaces in the store.
-func (s *TempStore) Namespaces() ([]string, error) {
+func (s *FileSystemStore) Namespaces() ([]string, error) {
 	files, err := afero.ReadDir(s.fs, s.dir)
 	if err != nil {
 		return nil, err
@@ -133,7 +144,7 @@ func (s *TempStore) Namespaces() ([]string, error) {
 }
 
 // Packages returns packages in a namespace.
-func (s *TempStore) Packages(ns string) ([]string, error) {
+func (s *FileSystemStore) Packages(ns string) ([]string, error) {
 	dir := filepath.Join(s.dir, ns)
 
 	if _, err := s.fs.Stat(dir); err != nil {
@@ -161,7 +172,7 @@ func (s *TempStore) Packages(ns string) ([]string, error) {
 }
 
 // Releases returns releases in a package.
-func (s *TempStore) Releases(ns string, pkg string) ([]ReleaseMetadata, error) {
+func (s *FileSystemStore) Releases(ns string, pkg string) ([]ReleaseMetadata, error) {
 	dir := filepath.Join(s.dir, ns, pkg, "releases")
 
 	if _, err := s.fs.Stat(dir); err != nil {
@@ -194,7 +205,7 @@ func (s *TempStore) Releases(ns string, pkg string) ([]ReleaseMetadata, error) {
 }
 
 // CreateRelease creates a release in the store. It returns the release metadata or an error.
-func (s *TempStore) CreateRelease(ns, pkg, release string, data []byte) (ReleaseMetadata, error) {
+func (s *FileSystemStore) CreateRelease(ns, pkg, release string, data []byte) (ReleaseMetadata, error) {
 	var rm ReleaseMetadata
 
 	d := digest(data)
@@ -262,7 +273,7 @@ func (s *TempStore) CreateRelease(ns, pkg, release string, data []byte) (Release
 }
 
 // RemoveRelease removes a release.
-func (s *TempStore) RemoveRelease(ns, pkg, ver string) error {
+func (s *FileSystemStore) RemoveRelease(ns, pkg, ver string) error {
 	releaseName := filepath.Join(s.dir, ns, pkg, "releases", ver)
 
 	if _, err := s.fs.Stat(releaseName); err != nil {
@@ -295,7 +306,7 @@ func (s *TempStore) RemoveRelease(ns, pkg, ver string) error {
 }
 
 // Release returns ReleaseMetdata for a release or an error.
-func (s *TempStore) Release(ns, pkg, release string) (ReleaseMetadata, error) {
+func (s *FileSystemStore) Release(ns, pkg, release string) (ReleaseMetadata, error) {
 	var rm ReleaseMetadata
 
 	releaseName := filepath.Join(s.dir, ns, pkg, "releases", release)
@@ -351,7 +362,7 @@ func (s *TempStore) Release(ns, pkg, release string) (ReleaseMetadata, error) {
 }
 
 // Pull pulls a digest from a package.
-func (s *TempStore) Pull(ns, pkg, digest string) (multipart.File, error) {
+func (s *FileSystemStore) Pull(ns, pkg, digest string) (multipart.File, error) {
 	digestDir := filepath.Join(s.dir, ns, pkg, "digests", digest)
 
 	blob := filepath.Join(digestDir, blobName)
@@ -367,9 +378,8 @@ func (s *TempStore) Pull(ns, pkg, digest string) (multipart.File, error) {
 }
 
 // Close closes the TempStore.
-func (s *TempStore) Close() error {
-	logrus.Info("removing store")
-	return s.fs.RemoveAll(s.dir)
+func (s *FileSystemStore) Close() error {
+	return s.closeFn()
 }
 
 func digest(data []byte) string {
@@ -377,7 +387,7 @@ func digest(data []byte) string {
 	return fmt.Sprintf("%x", sum)
 }
 
-func (s *TempStore) extractTarGz(dest string, r io.Reader) error {
+func (s *FileSystemStore) extractTarGz(dest string, r io.Reader) error {
 	gzr, err := gzip.NewReader(r)
 	if err != nil {
 		return err
@@ -431,7 +441,7 @@ func (s *TempStore) extractTarGz(dest string, r io.Reader) error {
 	}
 }
 
-func (s *TempStore) copyFile(src, dest string) error {
+func (s *FileSystemStore) copyFile(src, dest string) error {
 	from, err := s.fs.Open(src)
 	if err != nil {
 		return err

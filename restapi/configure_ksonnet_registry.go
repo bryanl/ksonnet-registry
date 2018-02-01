@@ -10,6 +10,7 @@ import (
 	runtime "github.com/go-openapi/runtime"
 	middleware "github.com/go-openapi/runtime/middleware"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	graceful "github.com/tylerb/graceful"
 
 	"github.com/bryanl/ksonnet-registry/apiadapter"
@@ -22,12 +23,29 @@ import (
 )
 
 var (
-	s store.Store
+	fs afero.Fs
+	s  store.Store
 )
 
 func init() {
 	var err error
-	s, err = store.NewTempStore()
+
+	fs = afero.NewOsFs()
+	dir, err := afero.TempDir(fs, "", "ksonnet-registry")
+	if err != nil {
+		logrus.WithError(err).Fatal("unable to initialize store")
+	}
+
+	logrus.WithField("root", dir).Info("store root")
+
+	s, err = store.NewFileSystemStore(
+		store.FileSystemStoreOptFS(fs),
+		store.FileSystemStoreOptRoot(dir),
+		store.FileSystemStoreOptClose(func() error {
+			logrus.WithField("root", dir).Info("removing directory")
+			return fs.RemoveAll(dir)
+		}),
+	)
 	if err != nil {
 		logrus.WithError(err).Fatal("unable to initialize store")
 	}
