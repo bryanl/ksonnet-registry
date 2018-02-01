@@ -18,9 +18,10 @@ import (
 )
 
 const (
-	blobName   = "part.tar.gz"
-	configName = "parts.yaml"
-	docName    = "README.md"
+	pkgMetadataName = "metadata.yaml"
+	blobName        = "part.tar.gz"
+	configName      = "parts.yaml"
+	docName         = "README.md"
 )
 
 var (
@@ -30,6 +31,14 @@ var (
 	// ErrNotFound is a not found error.
 	ErrNotFound = errors.New("not found")
 )
+
+// PackageMetadata contains package metadata.
+type PackageMetadata struct {
+	Namespace string    `yaml:"namespace"`
+	Package   string    `yaml:"package"`
+	CreatedAt time.Time `yaml:"createdAt"`
+	IsVisible bool      `yaml:"isVisible"`
+}
 
 // ReleaseMetadata contains release metadata.
 type ReleaseMetadata struct {
@@ -63,6 +72,7 @@ func (ds Dependencies) ToMap() map[string]string {
 // Store manages files
 type Store interface {
 	Namespaces() ([]string, error)
+	CreatePackage(ns, pkg string) (PackageMetadata, error)
 	Packages(ns string) ([]string, error)
 	Releases(ns string, pkg string) ([]ReleaseMetadata, error)
 	CreateRelease(ns, pkg, release string, data []byte) (ReleaseMetadata, error)
@@ -143,6 +153,39 @@ func (s *FileSystemStore) Namespaces() ([]string, error) {
 	return namespaces, nil
 }
 
+// CreatePackage creates a package.
+func (s *FileSystemStore) CreatePackage(ns, pkg string) (PackageMetadata, error) {
+
+	pkgDir := filepath.Join(s.dir, ns, pkg)
+
+	if fileExists(s.fs, pkgDir) {
+		return PackageMetadata{}, errors.Errorf("package %s/%s exists", ns, pkg)
+	}
+
+	if err := s.fs.MkdirAll(pkgDir, dirMode); err != nil {
+		return PackageMetadata{}, err
+	}
+
+	pm := PackageMetadata{
+		Namespace: ns,
+		Package:   pkg,
+		CreatedAt: time.Now().UTC(),
+		IsVisible: true,
+	}
+
+	b, err := yaml.Marshal(&pm)
+	if err != nil {
+		return PackageMetadata{}, err
+	}
+
+	pmFile := filepath.Join(pkgDir, pkgMetadataName)
+	if err := afero.WriteFile(s.fs, pmFile, b, dirMode); err != nil {
+		return PackageMetadata{}, err
+	}
+
+	return pm, nil
+}
+
 // Packages returns packages in a namespace.
 func (s *FileSystemStore) Packages(ns string) ([]string, error) {
 	dir := filepath.Join(s.dir, ns)
@@ -207,6 +250,14 @@ func (s *FileSystemStore) Releases(ns string, pkg string) ([]ReleaseMetadata, er
 // CreateRelease creates a release in the store. It returns the release metadata or an error.
 func (s *FileSystemStore) CreateRelease(ns, pkg, release string, data []byte) (ReleaseMetadata, error) {
 	var rm ReleaseMetadata
+
+	pkgDir := filepath.Join(s.dir, ns, pkg)
+	if !fileExists(s.fs, pkgDir) {
+		_, err := s.CreatePackage(ns, pkg)
+		if err != nil {
+			return ReleaseMetadata{}, err
+		}
+	}
 
 	d := digest(data)
 	digestDir := filepath.Join(s.dir, ns, pkg, "digests", d)
@@ -456,4 +507,9 @@ func (s *FileSystemStore) copyFile(src, dest string) error {
 
 	_, err = io.Copy(to, from)
 	return err
+}
+
+func fileExists(fs afero.Fs, name string) bool {
+	_, err := fs.Stat(name)
+	return err == nil
 }

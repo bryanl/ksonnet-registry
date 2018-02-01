@@ -4,10 +4,10 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -61,6 +61,57 @@ func TestStore_Namespaces(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, names, 1)
 	})
+}
+
+func TestStore_CreatePackage(t *testing.T) {
+	cases := []struct {
+		name         string
+		ns           string
+		pkg          string
+		existingDirs []string
+		isErr        bool
+	}{
+		{
+			name: "package does not exist",
+			ns:   "ns",
+			pkg:  "pkg",
+		},
+		{
+			name:         "package exists",
+			ns:           "ns",
+			pkg:          "pkg",
+			existingDirs: []string{"ns/pkg"},
+			isErr:        true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			withFileSystemStore(t, func(s *FileSystemStore, fs afero.Fs) {
+				for _, dir := range tc.existingDirs {
+					dir = filepath.ToSlash(dir)
+					parts := strings.Split(dir, "/")
+
+					parts = append([]string{s.dir}, parts...)
+					mkdirAll(t, fs, filepath.Join(parts...))
+				}
+
+				pm, err := s.CreatePackage(tc.ns, tc.pkg)
+
+				if tc.isErr {
+					require.Error(t, err)
+				} else {
+					require.NoError(t, err)
+
+					assert.Equal(t, tc.ns, pm.Namespace)
+					assert.Equal(t, tc.pkg, pm.Package)
+					assert.True(t, pm.IsVisible)
+
+				}
+			})
+		})
+	}
+
 }
 
 func TestStore_Packages(t *testing.T) {
@@ -214,7 +265,6 @@ func TestStore_Release(t *testing.T) {
 				} else {
 					require.NoError(t, err)
 
-					spew.Dump(rm)
 					assert.Equal(t, "12345", rm.Digest)
 					assert.Equal(t, int64(8), rm.Size)
 					assert.Equal(t, aTime, rm.CreatedAt)
