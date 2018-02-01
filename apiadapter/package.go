@@ -40,8 +40,56 @@ func CreatePackage(s store.Store, params package_operations.CreatePackageParams)
 	return resp
 }
 
-// ShowPackage shows a package.
-func ShowPackage(s store.Store, params package_operations.ShowPackageReleasesParams) middleware.Responder {
+// ShowPackageRelease shows a release in a package.
+func ShowPackageRelease(s store.Store, params package_operations.ShowPackageReleaseParams) middleware.Responder {
+	release, err := registry.ShowRelease(
+		s,
+		params.Namespace,
+		params.Package,
+		params.Release,
+	)
+
+	if err != nil {
+		m := &models.Error{Message: err.Error()}
+		resp := package_operations.NewShowPackageReleaseNotFound().
+			WithPayload(m)
+		return resp
+	}
+
+	manifest := makeManifest(*release)
+
+	resp := package_operations.NewShowPackageReleaseOK().
+		WithPayload(manifest)
+
+	return resp
+}
+
+func makeManifest(r registry.Release) *models.Manifest {
+	var deps models.PartDescriptorDependencies
+	for dep, con := range r.Deps {
+		md := &models.Dependency{
+			Name:       dep,
+			Constraint: con,
+		}
+		deps = append(deps, md)
+	}
+
+	manifest := &models.Manifest{
+		Package:   r.Package(),
+		Release:   r.Version,
+		CreatedAt: strfmt.DateTime(r.CreatedAt),
+		Content: &models.PartDescriptor{
+			Digest:       r.Digest,
+			Size:         r.Size,
+			Dependencies: deps,
+		},
+	}
+
+	return manifest
+}
+
+// ShowPackageReleases shows releases in a package.
+func ShowPackageReleases(s store.Store, params package_operations.ShowPackageReleasesParams) middleware.Responder {
 	releases, err := registry.ShowReleases(
 		s,
 		params.Namespace,
@@ -58,29 +106,8 @@ func ShowPackage(s store.Store, params package_operations.ShowPackageReleasesPar
 	var manifests models.PackageManifest
 
 	for _, r := range releases {
-
-		var deps models.PartDescriptorDependencies
-		for dep, con := range r.Deps {
-			md := &models.Dependency{
-				Name:       dep,
-				Constraint: con,
-			}
-			deps = append(deps, md)
-		}
-
-		manifest := &models.Manifest{
-			Package:   r.Package(),
-			Release:   r.Version,
-			CreatedAt: strfmt.DateTime(r.CreatedAt),
-			Content: &models.PartDescriptor{
-				Digest:       r.Digest,
-				Size:         r.Size,
-				Dependencies: deps,
-			},
-		}
-
+		manifest := makeManifest(r)
 		manifests = append(manifests, manifest)
-
 	}
 
 	resp := package_operations.NewShowPackageReleasesOK().

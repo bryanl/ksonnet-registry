@@ -85,10 +85,10 @@ func configureAPI(api *operations.KsonnetRegistryAPI) http.Handler {
 		return middleware.NotImplemented("operation .PullPackage has not yet been implemented")
 	})
 	api.PackageOperationsShowPackageReleasesHandler = package_operations.ShowPackageReleasesHandlerFunc(func(params package_operations.ShowPackageReleasesParams) middleware.Responder {
-		return apiadapter.ShowPackage(s, params)
+		return apiadapter.ShowPackageReleases(s, params)
 	})
 	api.PackageOperationsShowPackageReleaseHandler = package_operations.ShowPackageReleaseHandlerFunc(func(params package_operations.ShowPackageReleaseParams) middleware.Responder {
-		return middleware.NotImplemented("show package release handler not implemented")
+		return apiadapter.ShowPackageRelease(s, params)
 	})
 
 	api.ServerShutdown = func() {

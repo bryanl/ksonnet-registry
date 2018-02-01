@@ -44,6 +44,6 @@ curl -vsSL -X POST \
   -H 'Content-Type: application/json' \
   -d "{
   \"blob\": \"${BLOB}\",
-  \"release\": \"1.1\"
+  \"release\": \"1.1.0\"
 }
 "

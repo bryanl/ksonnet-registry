@@ -67,7 +67,7 @@ func (p *Package) Release(ver string) (*Release, error) {
 		}
 	}
 
-	return nil, errors.Errorf("release %s was not found", ver)
+	return nil, errors.Errorf("release %s in %s/%s was not found", ver, p.Namespace, p.Name)
 }
 
 // Releases returns all releases.
