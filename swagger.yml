@@ -201,6 +201,90 @@ paths:
           schema:
             $ref: "#/definitions/Error"
 
+  /api/v1/packages/{namespace}/{package}/{release}:
+    get:
+      tags:
+        - package
+      summary: show package release
+      description: show package release
+      operationId: showPackageRelease
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: namespace
+          description: namespace
+          required: true
+          type: string
+        - in: path
+          name: package
+          description: package name
+          required: true
+          type: string
+        - in: path
+          name: release
+          description: release
+          required: true
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          schema:
+            $ref: "#/definitions/Manifest"
+        "404":
+          description: Release not found
+          schema:
+            $ref: "#/definitions/Error"
+        "401":
+          description: Not authorized to read the package
+          schema:
+            $ref: "#/definitions/Error"
+
+    delete:
+      tags:
+        - package
+      summary: Delete a package release
+      description: ""
+      operationId: deletePackageRelease
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: namespace
+          description: namespace
+          required: true
+          type: string
+
+        - in: path
+          name: package
+          description: package name
+          required: true
+          type: string
+
+        - in: path
+          name: release
+          description: release name
+          required: true
+          type: string
+
+      responses:
+        "204":
+          description: successful operation
+          # schema:
+          #   $ref: "#/definitions/Package"
+        "404":
+          description: Package not found
+          schema:
+            $ref: "#/definitions/Error"
+        "401":
+          description: Not authorized to read the package
+          schema:
+            $ref: "#/definitions/Error"
+
   /api/v1/packages/{namespace}/{package}/{release}/pull:
     get:
       tags:

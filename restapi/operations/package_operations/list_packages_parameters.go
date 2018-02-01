@@ -31,10 +31,6 @@ type ListPackagesParams struct {
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
-	/*Filter by media-type
-	  In: query
-	*/
-	MediaType *string
 	/*Filter by namespace
 	  In: query
 	*/
@@ -53,11 +49,6 @@ func (o *ListPackagesParams) BindRequest(r *http.Request, route *middleware.Matc
 
 	qs := runtime.Values(r.URL.Query())
 
-	qMediaType, qhkMediaType, _ := qs.GetOK("media_type")
-	if err := o.bindMediaType(qMediaType, qhkMediaType, route.Formats); err != nil {
-		res = append(res, err)
-	}
-
 	qNamespace, qhkNamespace, _ := qs.GetOK("namespace")
 	if err := o.bindNamespace(qNamespace, qhkNamespace, route.Formats); err != nil {
 		res = append(res, err)
@@ -71,20 +62,6 @@ func (o *ListPackagesParams) BindRequest(r *http.Request, route *middleware.Matc
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-func (o *ListPackagesParams) bindMediaType(rawData []string, hasKey bool, formats strfmt.Registry) error {
-	var raw string
-	if len(rawData) > 0 {
-		raw = rawData[len(rawData)-1]
-	}
-	if raw == "" { // empty values pass all other validations
-		return nil
-	}
-
-	o.MediaType = &raw
-
 	return nil
 }
 

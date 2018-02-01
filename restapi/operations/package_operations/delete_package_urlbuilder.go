@@ -14,7 +14,6 @@ import (
 
 // DeletePackageURL generates an URL for the delete package operation
 type DeletePackageURL struct {
-	MediaType string
 	Namespace string
 	Package   string
 	Release   string
@@ -43,14 +42,8 @@ func (o *DeletePackageURL) SetBasePath(bp string) {
 func (o *DeletePackageURL) Build() (*url.URL, error) {
 	var result url.URL
 
-	var _path = "/api/v1/packages/{namespace}/{package}/{release}/{media_type}"
+	var _path = "/api/v1/packages/{namespace}/{package}/{release}"
 
-	mediaType := o.MediaType
-	if mediaType != "" {
-		_path = strings.Replace(_path, "{media_type}", mediaType, -1)
-	} else {
-		return nil, errors.New("MediaType is required on DeletePackageURL")
-	}
 	namespace := o.Namespace
 	if namespace != "" {
 		_path = strings.Replace(_path, "{namespace}", namespace, -1)

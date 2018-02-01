@@ -14,12 +14,9 @@ import (
 
 // PullPackageURL generates an URL for the pull package operation
 type PullPackageURL struct {
-	MediaType string
 	Namespace string
 	Package   string
 	Release   string
-
-	Format *string
 
 	_basePath string
 	// avoid unkeyed usage
@@ -45,14 +42,8 @@ func (o *PullPackageURL) SetBasePath(bp string) {
 func (o *PullPackageURL) Build() (*url.URL, error) {
 	var result url.URL
 
-	var _path = "/api/v1/packages/{namespace}/{package}/{release}/{media_type}/pull"
+	var _path = "/api/v1/packages/{namespace}/{package}/{release}/pull"
 
-	mediaType := o.MediaType
-	if mediaType != "" {
-		_path = strings.Replace(_path, "{media_type}", mediaType, -1)
-	} else {
-		return nil, errors.New("MediaType is required on PullPackageURL")
-	}
 	namespace := o.Namespace
 	if namespace != "" {
 		_path = strings.Replace(_path, "{namespace}", namespace, -1)
@@ -76,18 +67,6 @@ func (o *PullPackageURL) Build() (*url.URL, error) {
 		_basePath = "/"
 	}
 	result.Path = golangswaggerpaths.Join(_basePath, _path)
-
-	qs := make(url.Values)
-
-	var format string
-	if o.Format != nil {
-		format = *o.Format
-	}
-	if format != "" {
-		qs.Set("format", format)
-	}
-
-	result.RawQuery = qs.Encode()
 
 	return &result, nil
 }

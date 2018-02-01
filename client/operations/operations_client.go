@@ -36,7 +36,7 @@ func (a *Client) PullPackage(params *PullPackageParams) (*PullPackageOK, error) 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
 		ID:                 "pullPackage",
 		Method:             "GET",
-		PathPattern:        "/api/v1/packages/{namespace}/{package}/{release}/{media_type}/pull",
+		PathPattern:        "/api/v1/packages/{namespace}/{package}/{release}/pull",
 		ProducesMediaTypes: []string{"application/x-gzip"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
@@ -49,34 +49,6 @@ func (a *Client) PullPackage(params *PullPackageParams) (*PullPackageOK, error) 
 		return nil, err
 	}
 	return result.(*PullPackageOK), nil
-
-}
-
-/*
-PullPackageJSON downloads the package
-*/
-func (a *Client) PullPackageJSON(params *PullPackageJSONParams) (*PullPackageJSONOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPullPackageJSONParams()
-	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "pullPackageJson",
-		Method:             "GET",
-		PathPattern:        "/api/v1/packages/{namespace}/{package}/{release}/{media_type}/pull/json",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &PullPackageJSONReader{formats: a.formats},
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return result.(*PullPackageJSONOK), nil
 
 }
 

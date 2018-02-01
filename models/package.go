@@ -18,9 +18,6 @@ import (
 // swagger:model Package
 type Package struct {
 
-	// channels
-	Channels []string `json:"channels"`
-
 	// content
 	Content *Manifest `json:"content,omitempty"`
 
@@ -28,11 +25,6 @@ type Package struct {
 	//
 	// Package creation date
 	CreatedAt strfmt.DateTime `json:"created_at,omitempty"`
-
-	// media-type
-	//
-	// manifest-type
-	MediaType string `json:"mediaType,omitempty"`
 
 	// package-name
 	//
@@ -49,11 +41,6 @@ type Package struct {
 func (m *Package) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateChannels(formats); err != nil {
-		// prop
-		res = append(res, err)
-	}
-
 	if err := m.validateContent(formats); err != nil {
 		// prop
 		res = append(res, err)
@@ -62,15 +49,6 @@ func (m *Package) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-func (m *Package) validateChannels(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Channels) { // not required
-		return nil
-	}
-
 	return nil
 }
 

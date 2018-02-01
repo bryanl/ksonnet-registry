@@ -12,9 +12,8 @@ import (
 	"strings"
 )
 
-// ShowPackageURL generates an URL for the show package operation
-type ShowPackageURL struct {
-	MediaType string
+// DeletePackageReleaseURL generates an URL for the delete package release operation
+type DeletePackageReleaseURL struct {
 	Namespace string
 	Package   string
 	Release   string
@@ -27,7 +26,7 @@ type ShowPackageURL struct {
 // WithBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *ShowPackageURL) WithBasePath(bp string) *ShowPackageURL {
+func (o *DeletePackageReleaseURL) WithBasePath(bp string) *DeletePackageReleaseURL {
 	o.SetBasePath(bp)
 	return o
 }
@@ -35,39 +34,33 @@ func (o *ShowPackageURL) WithBasePath(bp string) *ShowPackageURL {
 // SetBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *ShowPackageURL) SetBasePath(bp string) {
+func (o *DeletePackageReleaseURL) SetBasePath(bp string) {
 	o._basePath = bp
 }
 
 // Build a url path and query string
-func (o *ShowPackageURL) Build() (*url.URL, error) {
+func (o *DeletePackageReleaseURL) Build() (*url.URL, error) {
 	var result url.URL
 
-	var _path = "/api/v1/packages/{namespace}/{package}/{release}/{media_type}"
+	var _path = "/api/v1/packages/{namespace}/{package}/{release}"
 
-	mediaType := o.MediaType
-	if mediaType != "" {
-		_path = strings.Replace(_path, "{media_type}", mediaType, -1)
-	} else {
-		return nil, errors.New("MediaType is required on ShowPackageURL")
-	}
 	namespace := o.Namespace
 	if namespace != "" {
 		_path = strings.Replace(_path, "{namespace}", namespace, -1)
 	} else {
-		return nil, errors.New("Namespace is required on ShowPackageURL")
+		return nil, errors.New("Namespace is required on DeletePackageReleaseURL")
 	}
 	packageVar := o.Package
 	if packageVar != "" {
 		_path = strings.Replace(_path, "{package}", packageVar, -1)
 	} else {
-		return nil, errors.New("Package is required on ShowPackageURL")
+		return nil, errors.New("Package is required on DeletePackageReleaseURL")
 	}
 	release := o.Release
 	if release != "" {
 		_path = strings.Replace(_path, "{release}", release, -1)
 	} else {
-		return nil, errors.New("Release is required on ShowPackageURL")
+		return nil, errors.New("Release is required on DeletePackageReleaseURL")
 	}
 	_basePath := o._basePath
 	if _basePath == "" {
@@ -79,7 +72,7 @@ func (o *ShowPackageURL) Build() (*url.URL, error) {
 }
 
 // Must is a helper function to panic when the url builder returns an error
-func (o *ShowPackageURL) Must(u *url.URL, err error) *url.URL {
+func (o *DeletePackageReleaseURL) Must(u *url.URL, err error) *url.URL {
 	if err != nil {
 		panic(err)
 	}
@@ -90,17 +83,17 @@ func (o *ShowPackageURL) Must(u *url.URL, err error) *url.URL {
 }
 
 // String returns the string representation of the path with query string
-func (o *ShowPackageURL) String() string {
+func (o *DeletePackageReleaseURL) String() string {
 	return o.Must(o.Build()).String()
 }
 
 // BuildFull builds a full url with scheme, host, path and query string
-func (o *ShowPackageURL) BuildFull(scheme, host string) (*url.URL, error) {
+func (o *DeletePackageReleaseURL) BuildFull(scheme, host string) (*url.URL, error) {
 	if scheme == "" {
-		return nil, errors.New("scheme is required for a full url on ShowPackageURL")
+		return nil, errors.New("scheme is required for a full url on DeletePackageReleaseURL")
 	}
 	if host == "" {
-		return nil, errors.New("host is required for a full url on ShowPackageURL")
+		return nil, errors.New("host is required for a full url on DeletePackageReleaseURL")
 	}
 
 	base, err := o.Build()
@@ -114,6 +107,6 @@ func (o *ShowPackageURL) BuildFull(scheme, host string) (*url.URL, error) {
 }
 
 // StringFull returns the string representation of a complete url
-func (o *ShowPackageURL) StringFull(scheme, host string) string {
+func (o *DeletePackageReleaseURL) StringFull(scheme, host string) string {
 	return o.Must(o.BuildFull(scheme, host)).String()
 }

@@ -20,13 +20,8 @@ type PostPackage struct {
 
 	// blob
 	//
-	// Package blob: a tar.gz in b64-encoded
+	// Package blob: a tar.gz that is b64
 	Blob string `json:"blob,omitempty"`
-
-	// package-type
-	//
-	// mediatype of the blob
-	MediaType string `json:"media_type,omitempty"`
 
 	// package-name
 	//

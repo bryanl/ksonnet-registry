@@ -62,11 +62,6 @@ for the list packages operation typically these are written to a http.Request
 */
 type ListPackagesParams struct {
 
-	/*MediaType
-	  Filter by media-type
-
-	*/
-	MediaType *string
 	/*Namespace
 	  Filter by namespace
 
@@ -116,17 +111,6 @@ func (o *ListPackagesParams) SetHTTPClient(client *http.Client) {
 	o.HTTPClient = client
 }
 
-// WithMediaType adds the mediaType to the list packages params
-func (o *ListPackagesParams) WithMediaType(mediaType *string) *ListPackagesParams {
-	o.SetMediaType(mediaType)
-	return o
-}
-
-// SetMediaType adds the mediaType to the list packages params
-func (o *ListPackagesParams) SetMediaType(mediaType *string) {
-	o.MediaType = mediaType
-}
-
 // WithNamespace adds the namespace to the list packages params
 func (o *ListPackagesParams) WithNamespace(namespace *string) *ListPackagesParams {
 	o.SetNamespace(namespace)
@@ -156,22 +140,6 @@ func (o *ListPackagesParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.
 		return err
 	}
 	var res []error
-
-	if o.MediaType != nil {
-
-		// query param media_type
-		var qrMediaType string
-		if o.MediaType != nil {
-			qrMediaType = *o.MediaType
-		}
-		qMediaType := qrMediaType
-		if qMediaType != "" {
-			if err := r.SetQueryParam("media_type", qMediaType); err != nil {
-				return err
-			}
-		}
-
-	}
 
 	if o.Namespace != nil {
 

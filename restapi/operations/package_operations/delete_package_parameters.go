@@ -30,11 +30,6 @@ type DeletePackageParams struct {
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
-	/*content type
-	  Required: true
-	  In: path
-	*/
-	MediaType string
 	/*namespace
 	  Required: true
 	  In: path
@@ -58,11 +53,6 @@ func (o *DeletePackageParams) BindRequest(r *http.Request, route *middleware.Mat
 	var res []error
 	o.HTTPRequest = r
 
-	rMediaType, rhkMediaType, _ := route.Params.GetOK("media_type")
-	if err := o.bindMediaType(rMediaType, rhkMediaType, route.Formats); err != nil {
-		res = append(res, err)
-	}
-
 	rNamespace, rhkNamespace, _ := route.Params.GetOK("namespace")
 	if err := o.bindNamespace(rNamespace, rhkNamespace, route.Formats); err != nil {
 		res = append(res, err)
@@ -81,17 +71,6 @@ func (o *DeletePackageParams) BindRequest(r *http.Request, route *middleware.Mat
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-func (o *DeletePackageParams) bindMediaType(rawData []string, hasKey bool, formats strfmt.Registry) error {
-	var raw string
-	if len(rawData) > 0 {
-		raw = rawData[len(rawData)-1]
-	}
-
-	o.MediaType = raw
-
 	return nil
 }
 

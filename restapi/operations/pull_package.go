@@ -29,7 +29,7 @@ func NewPullPackage(ctx *middleware.Context, handler PullPackageHandler) *PullPa
 	return &PullPackage{Context: ctx, Handler: handler}
 }
 
-/*PullPackage swagger:route GET /api/v1/packages/{namespace}/{package}/{release}/{media_type}/pull package blobs pullPackage
+/*PullPackage swagger:route GET /api/v1/packages/{namespace}/{package}/{release}/pull package blobs pullPackage
 
 Download the package
 

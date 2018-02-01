@@ -62,11 +62,6 @@ for the show package releases operation typically these are written to a http.Re
 */
 type ShowPackageReleasesParams struct {
 
-	/*MediaType
-	  Filter by media-type
-
-	*/
-	MediaType *string
 	/*Namespace
 	  namespace
 
@@ -116,17 +111,6 @@ func (o *ShowPackageReleasesParams) SetHTTPClient(client *http.Client) {
 	o.HTTPClient = client
 }
 
-// WithMediaType adds the mediaType to the show package releases params
-func (o *ShowPackageReleasesParams) WithMediaType(mediaType *string) *ShowPackageReleasesParams {
-	o.SetMediaType(mediaType)
-	return o
-}
-
-// SetMediaType adds the mediaType to the show package releases params
-func (o *ShowPackageReleasesParams) SetMediaType(mediaType *string) {
-	o.MediaType = mediaType
-}
-
 // WithNamespace adds the namespace to the show package releases params
 func (o *ShowPackageReleasesParams) WithNamespace(namespace string) *ShowPackageReleasesParams {
 	o.SetNamespace(namespace)
@@ -156,22 +140,6 @@ func (o *ShowPackageReleasesParams) WriteToRequest(r runtime.ClientRequest, reg 
 		return err
 	}
 	var res []error
-
-	if o.MediaType != nil {
-
-		// query param media_type
-		var qrMediaType string
-		if o.MediaType != nil {
-			qrMediaType = *o.MediaType
-		}
-		qMediaType := qrMediaType
-		if qMediaType != "" {
-			if err := r.SetQueryParam("media_type", qMediaType); err != nil {
-				return err
-			}
-		}
-
-	}
 
 	// path param namespace
 	if err := r.SetPathParam("namespace", o.Namespace); err != nil {

@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/errors"
-	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 
 	strfmt "github.com/go-openapi/strfmt"
@@ -31,10 +30,6 @@ type ShowPackageReleasesParams struct {
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
-	/*Filter by media-type
-	  In: query
-	*/
-	MediaType *string
 	/*namespace
 	  Required: true
 	  In: path
@@ -53,13 +48,6 @@ func (o *ShowPackageReleasesParams) BindRequest(r *http.Request, route *middlewa
 	var res []error
 	o.HTTPRequest = r
 
-	qs := runtime.Values(r.URL.Query())
-
-	qMediaType, qhkMediaType, _ := qs.GetOK("media_type")
-	if err := o.bindMediaType(qMediaType, qhkMediaType, route.Formats); err != nil {
-		res = append(res, err)
-	}
-
 	rNamespace, rhkNamespace, _ := route.Params.GetOK("namespace")
 	if err := o.bindNamespace(rNamespace, rhkNamespace, route.Formats); err != nil {
 		res = append(res, err)
@@ -73,20 +61,6 @@ func (o *ShowPackageReleasesParams) BindRequest(r *http.Request, route *middlewa
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-func (o *ShowPackageReleasesParams) bindMediaType(rawData []string, hasKey bool, formats strfmt.Registry) error {
-	var raw string
-	if len(rawData) > 0 {
-		raw = rawData[len(rawData)-1]
-	}
-	if raw == "" { // empty values pass all other validations
-		return nil
-	}
-
-	o.MediaType = &raw
-
 	return nil
 }
 

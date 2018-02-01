@@ -17,8 +17,6 @@ type ShowPackageReleasesURL struct {
 	Namespace string
 	Package   string
 
-	MediaType *string
-
 	_basePath string
 	// avoid unkeyed usage
 	_ struct{}
@@ -62,18 +60,6 @@ func (o *ShowPackageReleasesURL) Build() (*url.URL, error) {
 		_basePath = "/"
 	}
 	result.Path = golangswaggerpaths.Join(_basePath, _path)
-
-	qs := make(url.Values)
-
-	var mediaType string
-	if o.MediaType != nil {
-		mediaType = *o.MediaType
-	}
-	if mediaType != "" {
-		qs.Set("media_type", mediaType)
-	}
-
-	result.RawQuery = qs.Encode()
 
 	return &result, nil
 }

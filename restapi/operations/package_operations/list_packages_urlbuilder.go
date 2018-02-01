@@ -13,7 +13,6 @@ import (
 
 // ListPackagesURL generates an URL for the list packages operation
 type ListPackagesURL struct {
-	MediaType *string
 	Namespace *string
 	Query     *string
 
@@ -50,14 +49,6 @@ func (o *ListPackagesURL) Build() (*url.URL, error) {
 	result.Path = golangswaggerpaths.Join(_basePath, _path)
 
 	qs := make(url.Values)
-
-	var mediaType string
-	if o.MediaType != nil {
-		mediaType = *o.MediaType
-	}
-	if mediaType != "" {
-		qs.Set("media_type", mediaType)
-	}
 
 	var namespace string
 	if o.Namespace != nil {

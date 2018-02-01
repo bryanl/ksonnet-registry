@@ -21,7 +21,6 @@ import (
 	"github.com/go-openapi/swag"
 
 	"github.com/bryanl/ksonnet-registry/restapi/operations/blobs"
-	"github.com/bryanl/ksonnet-registry/restapi/operations/channel"
 	"github.com/bryanl/ksonnet-registry/restapi/operations/info"
 	"github.com/bryanl/ksonnet-registry/restapi/operations/package_operations"
 )
@@ -44,29 +43,14 @@ func NewKsonnetRegistryAPI(spec *loads.Document) *KsonnetRegistryAPI {
 		GzipProducer: runtime.ProducerFunc(func(w io.Writer, data interface{}) error {
 			return errors.NotImplemented("gzip producer has not yet been implemented")
 		}),
-		ChannelCreateChannelHandler: channel.CreateChannelHandlerFunc(func(params channel.CreateChannelParams) middleware.Responder {
-			return middleware.NotImplemented("operation ChannelCreateChannel has not yet been implemented")
-		}),
-		ChannelCreateChannelReleaseHandler: channel.CreateChannelReleaseHandlerFunc(func(params channel.CreateChannelReleaseParams) middleware.Responder {
-			return middleware.NotImplemented("operation ChannelCreateChannelRelease has not yet been implemented")
-		}),
 		PackageOperationsCreatePackageHandler: package_operations.CreatePackageHandlerFunc(func(params package_operations.CreatePackageParams) middleware.Responder {
 			return middleware.NotImplemented("operation PackageOperationsCreatePackage has not yet been implemented")
 		}),
-		ChannelDeleteChannelHandler: channel.DeleteChannelHandlerFunc(func(params channel.DeleteChannelParams) middleware.Responder {
-			return middleware.NotImplemented("operation ChannelDeleteChannel has not yet been implemented")
-		}),
-		ChannelDeleteChannelReleaseHandler: channel.DeleteChannelReleaseHandlerFunc(func(params channel.DeleteChannelReleaseParams) middleware.Responder {
-			return middleware.NotImplemented("operation ChannelDeleteChannelRelease has not yet been implemented")
-		}),
-		PackageOperationsDeletePackageHandler: package_operations.DeletePackageHandlerFunc(func(params package_operations.DeletePackageParams) middleware.Responder {
-			return middleware.NotImplemented("operation PackageOperationsDeletePackage has not yet been implemented")
+		PackageOperationsDeletePackageReleaseHandler: package_operations.DeletePackageReleaseHandlerFunc(func(params package_operations.DeletePackageReleaseParams) middleware.Responder {
+			return middleware.NotImplemented("operation PackageOperationsDeletePackageRelease has not yet been implemented")
 		}),
 		InfoGetVersionHandler: info.GetVersionHandlerFunc(func(params info.GetVersionParams) middleware.Responder {
 			return middleware.NotImplemented("operation InfoGetVersion has not yet been implemented")
-		}),
-		ChannelListChannelsHandler: channel.ListChannelsHandlerFunc(func(params channel.ListChannelsParams) middleware.Responder {
-			return middleware.NotImplemented("operation ChannelListChannels has not yet been implemented")
 		}),
 		PackageOperationsListPackagesHandler: package_operations.ListPackagesHandlerFunc(func(params package_operations.ListPackagesParams) middleware.Responder {
 			return middleware.NotImplemented("operation PackageOperationsListPackages has not yet been implemented")
@@ -74,20 +58,11 @@ func NewKsonnetRegistryAPI(spec *loads.Document) *KsonnetRegistryAPI {
 		BlobsPullBlobHandler: blobs.PullBlobHandlerFunc(func(params blobs.PullBlobParams) middleware.Responder {
 			return middleware.NotImplemented("operation BlobsPullBlob has not yet been implemented")
 		}),
-		BlobsPullBlobJSONHandler: blobs.PullBlobJSONHandlerFunc(func(params blobs.PullBlobJSONParams) middleware.Responder {
-			return middleware.NotImplemented("operation BlobsPullBlobJSON has not yet been implemented")
-		}),
 		PullPackageHandler: PullPackageHandlerFunc(func(params PullPackageParams) middleware.Responder {
 			return middleware.NotImplemented("operation PullPackage has not yet been implemented")
 		}),
-		PullPackageJSONHandler: PullPackageJSONHandlerFunc(func(params PullPackageJSONParams) middleware.Responder {
-			return middleware.NotImplemented("operation PullPackageJSON has not yet been implemented")
-		}),
-		ChannelShowChannelHandler: channel.ShowChannelHandlerFunc(func(params channel.ShowChannelParams) middleware.Responder {
-			return middleware.NotImplemented("operation ChannelShowChannel has not yet been implemented")
-		}),
-		PackageOperationsShowPackageHandler: package_operations.ShowPackageHandlerFunc(func(params package_operations.ShowPackageParams) middleware.Responder {
-			return middleware.NotImplemented("operation PackageOperationsShowPackage has not yet been implemented")
+		PackageOperationsShowPackageReleaseHandler: package_operations.ShowPackageReleaseHandlerFunc(func(params package_operations.ShowPackageReleaseParams) middleware.Responder {
+			return middleware.NotImplemented("operation PackageOperationsShowPackageRelease has not yet been implemented")
 		}),
 		PackageOperationsShowPackageReleasesHandler: package_operations.ShowPackageReleasesHandlerFunc(func(params package_operations.ShowPackageReleasesParams) middleware.Responder {
 			return middleware.NotImplemented("operation PackageOperationsShowPackageReleases has not yet been implemented")
@@ -124,36 +99,20 @@ type KsonnetRegistryAPI struct {
 	// GzipProducer registers a producer for a "application/x-gzip" mime type
 	GzipProducer runtime.Producer
 
-	// ChannelCreateChannelHandler sets the operation handler for the create channel operation
-	ChannelCreateChannelHandler channel.CreateChannelHandler
-	// ChannelCreateChannelReleaseHandler sets the operation handler for the create channel release operation
-	ChannelCreateChannelReleaseHandler channel.CreateChannelReleaseHandler
 	// PackageOperationsCreatePackageHandler sets the operation handler for the create package operation
 	PackageOperationsCreatePackageHandler package_operations.CreatePackageHandler
-	// ChannelDeleteChannelHandler sets the operation handler for the delete channel operation
-	ChannelDeleteChannelHandler channel.DeleteChannelHandler
-	// ChannelDeleteChannelReleaseHandler sets the operation handler for the delete channel release operation
-	ChannelDeleteChannelReleaseHandler channel.DeleteChannelReleaseHandler
-	// PackageOperationsDeletePackageHandler sets the operation handler for the delete package operation
-	PackageOperationsDeletePackageHandler package_operations.DeletePackageHandler
+	// PackageOperationsDeletePackageReleaseHandler sets the operation handler for the delete package release operation
+	PackageOperationsDeletePackageReleaseHandler package_operations.DeletePackageReleaseHandler
 	// InfoGetVersionHandler sets the operation handler for the get version operation
 	InfoGetVersionHandler info.GetVersionHandler
-	// ChannelListChannelsHandler sets the operation handler for the list channels operation
-	ChannelListChannelsHandler channel.ListChannelsHandler
 	// PackageOperationsListPackagesHandler sets the operation handler for the list packages operation
 	PackageOperationsListPackagesHandler package_operations.ListPackagesHandler
 	// BlobsPullBlobHandler sets the operation handler for the pull blob operation
 	BlobsPullBlobHandler blobs.PullBlobHandler
-	// BlobsPullBlobJSONHandler sets the operation handler for the pull blob Json operation
-	BlobsPullBlobJSONHandler blobs.PullBlobJSONHandler
 	// PullPackageHandler sets the operation handler for the pull package operation
 	PullPackageHandler PullPackageHandler
-	// PullPackageJSONHandler sets the operation handler for the pull package Json operation
-	PullPackageJSONHandler PullPackageJSONHandler
-	// ChannelShowChannelHandler sets the operation handler for the show channel operation
-	ChannelShowChannelHandler channel.ShowChannelHandler
-	// PackageOperationsShowPackageHandler sets the operation handler for the show package operation
-	PackageOperationsShowPackageHandler package_operations.ShowPackageHandler
+	// PackageOperationsShowPackageReleaseHandler sets the operation handler for the show package release operation
+	PackageOperationsShowPackageReleaseHandler package_operations.ShowPackageReleaseHandler
 	// PackageOperationsShowPackageReleasesHandler sets the operation handler for the show package releases operation
 	PackageOperationsShowPackageReleasesHandler package_operations.ShowPackageReleasesHandler
 
@@ -223,36 +182,16 @@ func (o *KsonnetRegistryAPI) Validate() error {
 		unregistered = append(unregistered, "GzipProducer")
 	}
 
-	if o.ChannelCreateChannelHandler == nil {
-		unregistered = append(unregistered, "channel.CreateChannelHandler")
-	}
-
-	if o.ChannelCreateChannelReleaseHandler == nil {
-		unregistered = append(unregistered, "channel.CreateChannelReleaseHandler")
-	}
-
 	if o.PackageOperationsCreatePackageHandler == nil {
 		unregistered = append(unregistered, "package_operations.CreatePackageHandler")
 	}
 
-	if o.ChannelDeleteChannelHandler == nil {
-		unregistered = append(unregistered, "channel.DeleteChannelHandler")
-	}
-
-	if o.ChannelDeleteChannelReleaseHandler == nil {
-		unregistered = append(unregistered, "channel.DeleteChannelReleaseHandler")
-	}
-
-	if o.PackageOperationsDeletePackageHandler == nil {
-		unregistered = append(unregistered, "package_operations.DeletePackageHandler")
+	if o.PackageOperationsDeletePackageReleaseHandler == nil {
+		unregistered = append(unregistered, "package_operations.DeletePackageReleaseHandler")
 	}
 
 	if o.InfoGetVersionHandler == nil {
 		unregistered = append(unregistered, "info.GetVersionHandler")
-	}
-
-	if o.ChannelListChannelsHandler == nil {
-		unregistered = append(unregistered, "channel.ListChannelsHandler")
 	}
 
 	if o.PackageOperationsListPackagesHandler == nil {
@@ -263,24 +202,12 @@ func (o *KsonnetRegistryAPI) Validate() error {
 		unregistered = append(unregistered, "blobs.PullBlobHandler")
 	}
 
-	if o.BlobsPullBlobJSONHandler == nil {
-		unregistered = append(unregistered, "blobs.PullBlobJSONHandler")
-	}
-
 	if o.PullPackageHandler == nil {
 		unregistered = append(unregistered, "PullPackageHandler")
 	}
 
-	if o.PullPackageJSONHandler == nil {
-		unregistered = append(unregistered, "PullPackageJSONHandler")
-	}
-
-	if o.ChannelShowChannelHandler == nil {
-		unregistered = append(unregistered, "channel.ShowChannelHandler")
-	}
-
-	if o.PackageOperationsShowPackageHandler == nil {
-		unregistered = append(unregistered, "package_operations.ShowPackageHandler")
+	if o.PackageOperationsShowPackageReleaseHandler == nil {
+		unregistered = append(unregistered, "package_operations.ShowPackageReleaseHandler")
 	}
 
 	if o.PackageOperationsShowPackageReleasesHandler == nil {
@@ -383,42 +310,17 @@ func (o *KsonnetRegistryAPI) initHandlerCache() {
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
-	o.handlers["POST"]["/api/v1/packages/{namespace}/{package}/channels"] = channel.NewCreateChannel(o.context, o.ChannelCreateChannelHandler)
-
-	if o.handlers["POST"] == nil {
-		o.handlers["POST"] = make(map[string]http.Handler)
-	}
-	o.handlers["POST"]["/api/v1/packages/{namespace}/{package}/channels/{channel}/{release}"] = channel.NewCreateChannelRelease(o.context, o.ChannelCreateChannelReleaseHandler)
-
-	if o.handlers["POST"] == nil {
-		o.handlers["POST"] = make(map[string]http.Handler)
-	}
 	o.handlers["POST"]["/api/v1/packages/{namespace}/{package}"] = package_operations.NewCreatePackage(o.context, o.PackageOperationsCreatePackageHandler)
 
 	if o.handlers["DELETE"] == nil {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}
-	o.handlers["DELETE"]["/api/v1/packages/{namespace}/{package}/channels/{channel}"] = channel.NewDeleteChannel(o.context, o.ChannelDeleteChannelHandler)
-
-	if o.handlers["DELETE"] == nil {
-		o.handlers["DELETE"] = make(map[string]http.Handler)
-	}
-	o.handlers["DELETE"]["/api/v1/packages/{namespace}/{package}/channels/{channel}/{release}"] = channel.NewDeleteChannelRelease(o.context, o.ChannelDeleteChannelReleaseHandler)
-
-	if o.handlers["DELETE"] == nil {
-		o.handlers["DELETE"] = make(map[string]http.Handler)
-	}
-	o.handlers["DELETE"]["/api/v1/packages/{namespace}/{package}/{release}/{media_type}"] = package_operations.NewDeletePackage(o.context, o.PackageOperationsDeletePackageHandler)
+	o.handlers["DELETE"]["/api/v1/packages/{namespace}/{package}/{release}"] = package_operations.NewDeletePackageRelease(o.context, o.PackageOperationsDeletePackageReleaseHandler)
 
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/version"] = info.NewGetVersion(o.context, o.InfoGetVersionHandler)
-
-	if o.handlers["GET"] == nil {
-		o.handlers["GET"] = make(map[string]http.Handler)
-	}
-	o.handlers["GET"]["/api/v1/packages/{namespace}/{package}/channels"] = channel.NewListChannels(o.context, o.ChannelListChannelsHandler)
 
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
@@ -433,27 +335,12 @@ func (o *KsonnetRegistryAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/api/v1/packages/{namespace}/{package}/blobs/sha256/{digest}/json"] = blobs.NewPullBlobJSON(o.context, o.BlobsPullBlobJSONHandler)
+	o.handlers["GET"]["/api/v1/packages/{namespace}/{package}/{release}/pull"] = NewPullPackage(o.context, o.PullPackageHandler)
 
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/api/v1/packages/{namespace}/{package}/{release}/{media_type}/pull"] = NewPullPackage(o.context, o.PullPackageHandler)
-
-	if o.handlers["GET"] == nil {
-		o.handlers["GET"] = make(map[string]http.Handler)
-	}
-	o.handlers["GET"]["/api/v1/packages/{namespace}/{package}/{release}/{media_type}/pull/json"] = NewPullPackageJSON(o.context, o.PullPackageJSONHandler)
-
-	if o.handlers["GET"] == nil {
-		o.handlers["GET"] = make(map[string]http.Handler)
-	}
-	o.handlers["GET"]["/api/v1/packages/{namespace}/{package}/channels/{channel}"] = channel.NewShowChannel(o.context, o.ChannelShowChannelHandler)
-
-	if o.handlers["GET"] == nil {
-		o.handlers["GET"] = make(map[string]http.Handler)
-	}
-	o.handlers["GET"]["/api/v1/packages/{namespace}/{package}/{release}/{media_type}"] = package_operations.NewShowPackage(o.context, o.PackageOperationsShowPackageHandler)
+	o.handlers["GET"]["/api/v1/packages/{namespace}/{package}/{release}"] = package_operations.NewShowPackageRelease(o.context, o.PackageOperationsShowPackageReleaseHandler)
 
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)

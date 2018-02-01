@@ -65,7 +65,7 @@ type PullPackageOK struct {
 }
 
 func (o *PullPackageOK) Error() string {
-	return fmt.Sprintf("[GET /api/v1/packages/{namespace}/{package}/{release}/{media_type}/pull][%d] pullPackageOK  %+v", 200, o.Payload)
+	return fmt.Sprintf("[GET /api/v1/packages/{namespace}/{package}/{release}/pull][%d] pullPackageOK  %+v", 200, o.Payload)
 }
 
 func (o *PullPackageOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
@@ -92,7 +92,7 @@ type PullPackageUnauthorized struct {
 }
 
 func (o *PullPackageUnauthorized) Error() string {
-	return fmt.Sprintf("[GET /api/v1/packages/{namespace}/{package}/{release}/{media_type}/pull][%d] pullPackageUnauthorized  %+v", 401, o.Payload)
+	return fmt.Sprintf("[GET /api/v1/packages/{namespace}/{package}/{release}/pull][%d] pullPackageUnauthorized  %+v", 401, o.Payload)
 }
 
 func (o *PullPackageUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
@@ -121,7 +121,7 @@ type PullPackageNotFound struct {
 }
 
 func (o *PullPackageNotFound) Error() string {
-	return fmt.Sprintf("[GET /api/v1/packages/{namespace}/{package}/{release}/{media_type}/pull][%d] pullPackageNotFound  %+v", 404, o.Payload)
+	return fmt.Sprintf("[GET /api/v1/packages/{namespace}/{package}/{release}/pull][%d] pullPackageNotFound  %+v", 404, o.Payload)
 }
 
 func (o *PullPackageNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {

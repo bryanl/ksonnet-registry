@@ -24,11 +24,6 @@ type Manifest struct {
 	// creation data
 	CreatedAt strfmt.DateTime `json:"created_at,omitempty"`
 
-	// media-type
-	//
-	// manifest-type
-	MediaType string `json:"mediaType,omitempty"`
-
 	// metadata
 	//
 	// KeyValue object to add complementary and format specific information

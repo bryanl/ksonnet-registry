@@ -16,7 +16,6 @@ import (
 	"github.com/bryanl/ksonnet-registry/models"
 	"github.com/bryanl/ksonnet-registry/restapi/operations"
 	"github.com/bryanl/ksonnet-registry/restapi/operations/blobs"
-	"github.com/bryanl/ksonnet-registry/restapi/operations/channel"
 	"github.com/bryanl/ksonnet-registry/restapi/operations/info"
 	"github.com/bryanl/ksonnet-registry/restapi/operations/package_operations"
 	"github.com/bryanl/ksonnet-registry/store"
@@ -67,29 +66,14 @@ func configureAPI(api *operations.KsonnetRegistryAPI) http.Handler {
 		}
 	})
 
-	api.ChannelCreateChannelHandler = channel.CreateChannelHandlerFunc(func(params channel.CreateChannelParams) middleware.Responder {
-		return middleware.NotImplemented("operation channel.CreateChannel has not yet been implemented")
-	})
-	api.ChannelCreateChannelReleaseHandler = channel.CreateChannelReleaseHandlerFunc(func(params channel.CreateChannelReleaseParams) middleware.Responder {
-		return middleware.NotImplemented("operation channel.CreateChannelRelease has not yet been implemented")
-	})
 	api.PackageOperationsCreatePackageHandler = package_operations.CreatePackageHandlerFunc(func(params package_operations.CreatePackageParams) middleware.Responder {
 		return apiadapter.CreatePackage(s, params)
 	})
-	api.ChannelDeleteChannelHandler = channel.DeleteChannelHandlerFunc(func(params channel.DeleteChannelParams) middleware.Responder {
-		return middleware.NotImplemented("operation channel.DeleteChannel has not yet been implemented")
-	})
-	api.ChannelDeleteChannelReleaseHandler = channel.DeleteChannelReleaseHandlerFunc(func(params channel.DeleteChannelReleaseParams) middleware.Responder {
-		return middleware.NotImplemented("operation channel.DeleteChannelRelease has not yet been implemented")
-	})
-	api.PackageOperationsDeletePackageHandler = package_operations.DeletePackageHandlerFunc(func(params package_operations.DeletePackageParams) middleware.Responder {
+	api.PackageOperationsDeletePackageReleaseHandler = package_operations.DeletePackageReleaseHandlerFunc(func(params package_operations.DeletePackageReleaseParams) middleware.Responder {
 		return apiadapter.DeletePackage(s, params)
 	})
 	api.InfoGetVersionHandler = info.GetVersionHandlerFunc(func(params info.GetVersionParams) middleware.Responder {
 		return middleware.NotImplemented("operation info.GetVersion has not yet been implemented")
-	})
-	api.ChannelListChannelsHandler = channel.ListChannelsHandlerFunc(func(params channel.ListChannelsParams) middleware.Responder {
-		return middleware.NotImplemented("operation channel.ListChannels has not yet been implemented")
 	})
 	api.PackageOperationsListPackagesHandler = package_operations.ListPackagesHandlerFunc(func(params package_operations.ListPackagesParams) middleware.Responder {
 		return middleware.NotImplemented("operation package_operations.ListPackages has not yet been implemented")
@@ -97,23 +81,14 @@ func configureAPI(api *operations.KsonnetRegistryAPI) http.Handler {
 	api.BlobsPullBlobHandler = blobs.PullBlobHandlerFunc(func(params blobs.PullBlobParams) middleware.Responder {
 		return apiadapter.PullPackage(s, params)
 	})
-	api.BlobsPullBlobJSONHandler = blobs.PullBlobJSONHandlerFunc(func(params blobs.PullBlobJSONParams) middleware.Responder {
-		return middleware.NotImplemented("operation blobs.PullBlobJSON has not yet been implemented")
-	})
 	api.PullPackageHandler = operations.PullPackageHandlerFunc(func(params operations.PullPackageParams) middleware.Responder {
 		return middleware.NotImplemented("operation .PullPackage has not yet been implemented")
 	})
-	api.PullPackageJSONHandler = operations.PullPackageJSONHandlerFunc(func(params operations.PullPackageJSONParams) middleware.Responder {
-		return middleware.NotImplemented("operation .PullPackageJSON has not yet been implemented")
-	})
-	api.ChannelShowChannelHandler = channel.ShowChannelHandlerFunc(func(params channel.ShowChannelParams) middleware.Responder {
-		return middleware.NotImplemented("operation channel.ShowChannel has not yet been implemented")
-	})
-	api.PackageOperationsShowPackageHandler = package_operations.ShowPackageHandlerFunc(func(params package_operations.ShowPackageParams) middleware.Responder {
-		return middleware.NotImplemented("operation channel.ShowPackageHandler has not yet been implemented")
-	})
 	api.PackageOperationsShowPackageReleasesHandler = package_operations.ShowPackageReleasesHandlerFunc(func(params package_operations.ShowPackageReleasesParams) middleware.Responder {
 		return apiadapter.ShowPackage(s, params)
+	})
+	api.PackageOperationsShowPackageReleaseHandler = package_operations.ShowPackageReleaseHandlerFunc(func(params package_operations.ShowPackageReleaseParams) middleware.Responder {
+		return middleware.NotImplemented("show package release handler not implemented")
 	})
 
 	api.ServerShutdown = func() {

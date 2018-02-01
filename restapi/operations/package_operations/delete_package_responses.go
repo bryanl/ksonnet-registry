@@ -13,47 +13,27 @@ import (
 	"github.com/bryanl/ksonnet-registry/models"
 )
 
-// DeletePackageOKCode is the HTTP code returned for type DeletePackageOK
-const DeletePackageOKCode int = 200
+// DeletePackageNoContentCode is the HTTP code returned for type DeletePackageNoContent
+const DeletePackageNoContentCode int = 204
 
-/*DeletePackageOK successful operation
+/*DeletePackageNoContent successful operation
 
-swagger:response deletePackageOK
+swagger:response deletePackageNoContent
 */
-type DeletePackageOK struct {
-
-	/*
-	  In: Body
-	*/
-	Payload *models.Package `json:"body,omitempty"`
+type DeletePackageNoContent struct {
 }
 
-// NewDeletePackageOK creates DeletePackageOK with default headers values
-func NewDeletePackageOK() *DeletePackageOK {
-	return &DeletePackageOK{}
-}
-
-// WithPayload adds the payload to the delete package o k response
-func (o *DeletePackageOK) WithPayload(payload *models.Package) *DeletePackageOK {
-	o.Payload = payload
-	return o
-}
-
-// SetPayload sets the payload to the delete package o k response
-func (o *DeletePackageOK) SetPayload(payload *models.Package) {
-	o.Payload = payload
+// NewDeletePackageNoContent creates DeletePackageNoContent with default headers values
+func NewDeletePackageNoContent() *DeletePackageNoContent {
+	return &DeletePackageNoContent{}
 }
 
 // WriteResponse to the client
-func (o *DeletePackageOK) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+func (o *DeletePackageNoContent) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.WriteHeader(200)
-	if o.Payload != nil {
-		payload := o.Payload
-		if err := producer.Produce(rw, payload); err != nil {
-			panic(err) // let the recovery middleware deal with this
-		}
-	}
+	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
+
+	rw.WriteHeader(204)
 }
 
 // DeletePackageUnauthorizedCode is the HTTP code returned for type DeletePackageUnauthorized

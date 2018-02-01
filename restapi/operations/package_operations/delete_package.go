@@ -29,7 +29,7 @@ func NewDeletePackage(ctx *middleware.Context, handler DeletePackageHandler) *De
 	return &DeletePackage{Context: ctx, Handler: handler}
 }
 
-/*DeletePackage swagger:route DELETE /api/v1/packages/{namespace}/{package}/{release}/{media_type} package deletePackage
+/*DeletePackage swagger:route DELETE /api/v1/packages/{namespace}/{package}/{release} package deletePackage
 
 Delete a package release
 

@@ -58,12 +58,6 @@ func init() {
             "description": "Lookup value for package search",
             "name": "query",
             "in": "query"
-          },
-          {
-            "type": "string",
-            "description": "Filter by media-type",
-            "name": "media_type",
-            "in": "query"
           }
         ],
         "responses": {
@@ -103,12 +97,6 @@ func init() {
             "name": "package",
             "in": "path",
             "required": true
-          },
-          {
-            "type": "string",
-            "description": "Filter by media-type",
-            "name": "media_type",
-            "in": "query"
           }
         ],
         "responses": {
@@ -269,444 +257,9 @@ func init() {
         }
       }
     },
-    "/api/v1/packages/{namespace}/{package}/blobs/sha256/{digest}/json": {
+    "/api/v1/packages/{namespace}/{package}/{release}": {
       "get": {
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "blobs"
-        ],
-        "summary": "Pull a package blob by digest",
-        "operationId": "pullBlobJson",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "namespace",
-            "name": "namespace",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "package name",
-            "name": "package",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "content digest",
-            "name": "digest",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "default": "gzip",
-            "description": "return format type(json or gzip)",
-            "name": "format",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "schema": {
-              "$ref": "#/definitions/PullJson"
-            }
-          },
-          "401": {
-            "description": "Not authorized to read the package",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          },
-          "404": {
-            "description": "Package not found",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/packages/{namespace}/{package}/channels": {
-      "get": {
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "channel"
-        ],
-        "summary": "List channels",
-        "operationId": "listChannels",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "namespace",
-            "name": "namespace",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "package name",
-            "name": "package",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "schema": {
-              "type": "array",
-              "title": "channels",
-              "items": {
-                "$ref": "#/definitions/Channel"
-              }
-            }
-          },
-          "401": {
-            "description": "Not authorized to read the package",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          },
-          "404": {
-            "description": "Package not found",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          }
-        }
-      },
-      "post": {
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "channel"
-        ],
-        "summary": "Create a new channel",
-        "operationId": "createChannel",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Channel name",
-            "name": "name",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "namespace",
-            "name": "namespace",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "package name",
-            "name": "package",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "schema": {
-              "$ref": "#/definitions/Channel"
-            }
-          },
-          "401": {
-            "description": "Not authorized to create the channel",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          },
-          "404": {
-            "description": "Package not found",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          },
-          "409": {
-            "description": "Channel already exists",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/packages/{namespace}/{package}/channels/{channel}": {
-      "get": {
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "channel"
-        ],
-        "summary": "show channel",
-        "operationId": "showChannel",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "channel name",
-            "name": "channel",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "namespace",
-            "name": "namespace",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "package name",
-            "name": "package",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "schema": {
-              "type": "array",
-              "title": "channels",
-              "items": {
-                "$ref": "#/definitions/Channel"
-              }
-            }
-          },
-          "401": {
-            "description": "Not authorized to read the package",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          },
-          "404": {
-            "description": "Package not found",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          }
-        }
-      },
-      "delete": {
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "channel"
-        ],
-        "summary": "Delete channel",
-        "operationId": "deleteChannel",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "namespace",
-            "name": "namespace",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "channel name",
-            "name": "channel",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "full package name",
-            "name": "package",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "schema": {
-              "type": "array",
-              "title": "channels",
-              "items": {
-                "$ref": "#/definitions/Channel"
-              }
-            }
-          },
-          "401": {
-            "description": "Not authorized to read the package",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          },
-          "404": {
-            "description": "Package not found",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/packages/{namespace}/{package}/channels/{channel}/{release}": {
-      "post": {
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "channel"
-        ],
-        "summary": "Add a release to a channel",
-        "operationId": "createChannelRelease",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "channel name",
-            "name": "channel",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "namespace",
-            "name": "namespace",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "full package name",
-            "name": "package",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "Release name",
-            "name": "release",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "schema": {
-              "$ref": "#/definitions/Channel"
-            }
-          },
-          "401": {
-            "description": "Not authorized to read the package",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          },
-          "404": {
-            "description": "Package not found",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          }
-        }
-      },
-      "delete": {
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "channel"
-        ],
-        "summary": "Remove a release from the channel",
-        "operationId": "deleteChannelRelease",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "channel name",
-            "name": "channel",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "namespace",
-            "name": "namespace",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "full package name",
-            "name": "package",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "Release name",
-            "name": "release",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "schema": {
-              "type": "array",
-              "title": "channels",
-              "items": {
-                "$ref": "#/definitions/Channel"
-              }
-            }
-          },
-          "401": {
-            "description": "Not authorized to read the package",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          },
-          "404": {
-            "description": "Resource not found",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/packages/{namespace}/{package}/{release}/{media_type}": {
-      "get": {
+        "description": "show package release",
         "consumes": [
           "application/json"
         ],
@@ -716,8 +269,8 @@ func init() {
         "tags": [
           "package"
         ],
-        "summary": "Show a package",
-        "operationId": "showPackage",
+        "summary": "show package release",
+        "operationId": "showPackageRelease",
         "parameters": [
           {
             "type": "string",
@@ -735,15 +288,8 @@ func init() {
           },
           {
             "type": "string",
-            "description": "release name",
+            "description": "release",
             "name": "release",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "content type",
-            "name": "media_type",
             "in": "path",
             "required": true
           }
@@ -752,7 +298,7 @@ func init() {
           "200": {
             "description": "successful operation",
             "schema": {
-              "$ref": "#/definitions/Package"
+              "$ref": "#/definitions/Manifest"
             }
           },
           "401": {
@@ -762,7 +308,7 @@ func init() {
             }
           },
           "404": {
-            "description": "Package not found",
+            "description": "Release not found",
             "schema": {
               "$ref": "#/definitions/Error"
             }
@@ -780,7 +326,7 @@ func init() {
           "package"
         ],
         "summary": "Delete a package release",
-        "operationId": "deletePackage",
+        "operationId": "deletePackageRelease",
         "parameters": [
           {
             "type": "string",
@@ -802,21 +348,11 @@ func init() {
             "name": "release",
             "in": "path",
             "required": true
-          },
-          {
-            "type": "string",
-            "description": "content type",
-            "name": "media_type",
-            "in": "path",
-            "required": true
           }
         ],
         "responses": {
-          "200": {
-            "description": "successful operation",
-            "schema": {
-              "$ref": "#/definitions/Package"
-            }
+          "204": {
+            "description": "successful operation"
           },
           "401": {
             "description": "Not authorized to read the package",
@@ -833,7 +369,7 @@ func init() {
         }
       }
     },
-    "/api/v1/packages/{namespace}/{package}/{release}/{media_type}/pull": {
+    "/api/v1/packages/{namespace}/{package}/{release}/pull": {
       "get": {
         "consumes": [
           "application/json"
@@ -868,19 +404,6 @@ func init() {
             "name": "release",
             "in": "path",
             "required": true
-          },
-          {
-            "type": "string",
-            "description": "content type",
-            "name": "media_type",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "reponse format: json or blob",
-            "name": "format",
-            "in": "query"
           }
         ],
         "responses": {
@@ -889,78 +412,6 @@ func init() {
             "schema": {
               "type": "file",
               "title": "package-targz"
-            }
-          },
-          "401": {
-            "description": "Not authorized to read the package",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          },
-          "404": {
-            "description": "Package not found",
-            "schema": {
-              "$ref": "#/definitions/Error"
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/packages/{namespace}/{package}/{release}/{media_type}/pull/json": {
-      "get": {
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "package",
-          "blobs"
-        ],
-        "summary": "Download the package",
-        "operationId": "pullPackageJson",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "namespace",
-            "name": "namespace",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "package name",
-            "name": "package",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "release name",
-            "name": "release",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "content type",
-            "name": "media_type",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "description": "reponse format: json or blob",
-            "name": "format",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "schema": {
-              "$ref": "#/definitions/PullJson"
             }
           },
           "401": {
@@ -1003,33 +454,6 @@ func init() {
     }
   },
   "definitions": {
-    "Channel": {
-      "description": "Organize releases into channel, eg: dev/beta/stable",
-      "type": "object",
-      "title": "Channel",
-      "properties": {
-        "current": {
-          "description": "Current/latest release in the channel. The channel returns this release by default",
-          "type": "string",
-          "title": "Latest release"
-        },
-        "name": {
-          "description": "Channel name",
-          "type": "string",
-          "title": "Channel name"
-        },
-        "releases": {
-          "description": "All availables releases in the channel",
-          "type": "array",
-          "title": "Releases",
-          "items": {
-            "description": "Release name",
-            "type": "string",
-            "title": "Release name"
-          }
-        }
-      }
-    },
     "Dependency": {
       "type": "object",
       "title": "dependency",
@@ -1075,11 +499,6 @@ func init() {
           "format": "date-time",
           "title": "created-at"
         },
-        "mediaType": {
-          "description": "manifest-type",
-          "type": "string",
-          "title": "media-type"
-        },
         "metadata": {
           "description": "KeyValue object to add complementary and format specific information",
           "type": "object",
@@ -1102,15 +521,6 @@ func init() {
       "type": "object",
       "title": "Package",
       "properties": {
-        "channels": {
-          "type": "array",
-          "title": "channels",
-          "items": {
-            "description": "List channels for that release",
-            "type": "string",
-            "title": "channel-name"
-          }
-        },
         "content": {
           "$ref": "#/definitions/Manifest"
         },
@@ -1119,11 +529,6 @@ func init() {
           "type": "string",
           "format": "date-time",
           "title": "created_at"
-        },
-        "mediaType": {
-          "description": "manifest-type",
-          "type": "string",
-          "title": "media-type"
         },
         "package": {
           "description": "Package name",
@@ -1228,14 +633,9 @@ func init() {
       "title": "Package",
       "properties": {
         "blob": {
-          "description": "Package blob: a tar.gz in b64-encoded",
+          "description": "Package blob: a tar.gz that is b64",
           "type": "string",
           "title": "blob"
-        },
-        "media_type": {
-          "description": "mediatype of the blob",
-          "type": "string",
-          "title": "package-type"
         },
         "package": {
           "description": "Package name",

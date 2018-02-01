@@ -12,7 +12,6 @@ import (
 	strfmt "github.com/go-openapi/strfmt"
 
 	"github.com/bryanl/ksonnet-registry/client/blobs"
-	"github.com/bryanl/ksonnet-registry/client/channel"
 	"github.com/bryanl/ksonnet-registry/client/info"
 	"github.com/bryanl/ksonnet-registry/client/operations"
 	"github.com/bryanl/ksonnet-registry/client/package_operations"
@@ -60,8 +59,6 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *KsonnetReg
 	cli.Transport = transport
 
 	cli.Blobs = blobs.New(transport, formats)
-
-	cli.Channel = channel.New(transport, formats)
 
 	cli.Info = info.New(transport, formats)
 
@@ -115,8 +112,6 @@ func (cfg *TransportConfig) WithSchemes(schemes []string) *TransportConfig {
 type KsonnetRegistry struct {
 	Blobs *blobs.Client
 
-	Channel *channel.Client
-
 	Info *info.Client
 
 	Operations *operations.Client
@@ -131,8 +126,6 @@ func (c *KsonnetRegistry) SetTransport(transport runtime.ClientTransport) {
 	c.Transport = transport
 
 	c.Blobs.SetTransport(transport)
-
-	c.Channel.SetTransport(transport)
 
 	c.Info.SetTransport(transport)
 

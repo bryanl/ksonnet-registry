@@ -50,7 +50,7 @@ func ShowPackage(s store.Store, params package_operations.ShowPackageReleasesPar
 
 	if err != nil {
 		m := &models.Error{Message: err.Error()}
-		resp := package_operations.NewShowPackageManifestsNotFound().
+		resp := package_operations.NewShowPackageReleasesNotFound().
 			WithPayload(m)
 		return resp
 	}
@@ -83,21 +83,21 @@ func ShowPackage(s store.Store, params package_operations.ShowPackageReleasesPar
 
 	}
 
-	resp := package_operations.NewShowPackageManifestsOK().
+	resp := package_operations.NewShowPackageReleasesOK().
 		WithPayload(manifests)
 
 	return resp
 }
 
 // DeletePackage deletes a package.
-func DeletePackage(s store.Store, params package_operations.DeletePackageParams) middleware.Responder {
+func DeletePackage(s store.Store, params package_operations.DeletePackageReleaseParams) middleware.Responder {
 	if err := registry.DeleteRelease(s, params.Namespace, params.Package, params.Release); err != nil {
 		payload := &models.Error{Message: err.Error()}
 		return package_operations.NewDeletePackageNotFound().
 			WithPayload(payload)
 	}
 
-	return package_operations.NewDeletePackageOK()
+	return package_operations.NewDeletePackageReleaseNoContent()
 }
 
 // PullPackage pulls a package.

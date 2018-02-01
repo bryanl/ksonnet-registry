@@ -53,30 +53,30 @@ func (a *Client) CreatePackage(params *CreatePackageParams) (*CreatePackageCreat
 }
 
 /*
-DeletePackage deletes a package release
+DeletePackageRelease deletes a package release
 */
-func (a *Client) DeletePackage(params *DeletePackageParams) (*DeletePackageOK, error) {
+func (a *Client) DeletePackageRelease(params *DeletePackageReleaseParams) (*DeletePackageReleaseNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewDeletePackageParams()
+		params = NewDeletePackageReleaseParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "deletePackage",
+		ID:                 "deletePackageRelease",
 		Method:             "DELETE",
-		PathPattern:        "/api/v1/packages/{namespace}/{package}/{release}/{media_type}",
+		PathPattern:        "/api/v1/packages/{namespace}/{package}/{release}",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &DeletePackageReader{formats: a.formats},
+		Reader:             &DeletePackageReleaseReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*DeletePackageOK), nil
+	return result.(*DeletePackageReleaseNoContent), nil
 
 }
 
@@ -109,30 +109,32 @@ func (a *Client) ListPackages(params *ListPackagesParams) (*ListPackagesOK, erro
 }
 
 /*
-ShowPackage shows a package
+ShowPackageRelease shows package release
+
+show package release
 */
-func (a *Client) ShowPackage(params *ShowPackageParams) (*ShowPackageOK, error) {
+func (a *Client) ShowPackageRelease(params *ShowPackageReleaseParams) (*ShowPackageReleaseOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewShowPackageParams()
+		params = NewShowPackageReleaseParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "showPackage",
+		ID:                 "showPackageRelease",
 		Method:             "GET",
-		PathPattern:        "/api/v1/packages/{namespace}/{package}/{release}/{media_type}",
+		PathPattern:        "/api/v1/packages/{namespace}/{package}/{release}",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &ShowPackageReader{formats: a.formats},
+		Reader:             &ShowPackageReleaseReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*ShowPackageOK), nil
+	return result.(*ShowPackageReleaseOK), nil
 
 }
 

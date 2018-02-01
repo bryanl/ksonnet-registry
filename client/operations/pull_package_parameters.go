@@ -62,16 +62,6 @@ for the pull package operation typically these are written to a http.Request
 */
 type PullPackageParams struct {
 
-	/*Format
-	  reponse format: json or blob
-
-	*/
-	Format *string
-	/*MediaType
-	  content type
-
-	*/
-	MediaType string
 	/*Namespace
 	  namespace
 
@@ -126,28 +116,6 @@ func (o *PullPackageParams) SetHTTPClient(client *http.Client) {
 	o.HTTPClient = client
 }
 
-// WithFormat adds the format to the pull package params
-func (o *PullPackageParams) WithFormat(format *string) *PullPackageParams {
-	o.SetFormat(format)
-	return o
-}
-
-// SetFormat adds the format to the pull package params
-func (o *PullPackageParams) SetFormat(format *string) {
-	o.Format = format
-}
-
-// WithMediaType adds the mediaType to the pull package params
-func (o *PullPackageParams) WithMediaType(mediaType string) *PullPackageParams {
-	o.SetMediaType(mediaType)
-	return o
-}
-
-// SetMediaType adds the mediaType to the pull package params
-func (o *PullPackageParams) SetMediaType(mediaType string) {
-	o.MediaType = mediaType
-}
-
 // WithNamespace adds the namespace to the pull package params
 func (o *PullPackageParams) WithNamespace(namespace string) *PullPackageParams {
 	o.SetNamespace(namespace)
@@ -188,27 +156,6 @@ func (o *PullPackageParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.R
 		return err
 	}
 	var res []error
-
-	if o.Format != nil {
-
-		// query param format
-		var qrFormat string
-		if o.Format != nil {
-			qrFormat = *o.Format
-		}
-		qFormat := qrFormat
-		if qFormat != "" {
-			if err := r.SetQueryParam("format", qFormat); err != nil {
-				return err
-			}
-		}
-
-	}
-
-	// path param media_type
-	if err := r.SetPathParam("media_type", o.MediaType); err != nil {
-		return err
-	}
 
 	// path param namespace
 	if err := r.SetPathParam("namespace", o.Namespace); err != nil {
