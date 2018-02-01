@@ -89,8 +89,8 @@ func ShowPackage(s store.Store, params package_operations.ShowPackageReleasesPar
 	return resp
 }
 
-// DeletePackage deletes a package.
-func DeletePackage(s store.Store, params package_operations.DeletePackageReleaseParams) middleware.Responder {
+// DeletePackageRelease deletes a release from a package.
+func DeletePackageRelease(s store.Store, params package_operations.DeletePackageReleaseParams) middleware.Responder {
 	if err := registry.DeleteRelease(s, params.Namespace, params.Package, params.Release); err != nil {
 		payload := &models.Error{Message: err.Error()}
 		return package_operations.NewDeletePackageNotFound().

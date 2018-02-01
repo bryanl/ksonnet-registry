@@ -70,7 +70,7 @@ func configureAPI(api *operations.KsonnetRegistryAPI) http.Handler {
 		return apiadapter.CreatePackage(s, params)
 	})
 	api.PackageOperationsDeletePackageReleaseHandler = package_operations.DeletePackageReleaseHandlerFunc(func(params package_operations.DeletePackageReleaseParams) middleware.Responder {
-		return apiadapter.DeletePackage(s, params)
+		return apiadapter.DeletePackageRelease(s, params)
 	})
 	api.InfoGetVersionHandler = info.GetVersionHandlerFunc(func(params info.GetVersionParams) middleware.Responder {
 		return middleware.NotImplemented("operation info.GetVersion has not yet been implemented")
