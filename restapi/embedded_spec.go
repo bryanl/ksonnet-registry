@@ -568,16 +568,6 @@ func init() {
             "type": "string",
             "title": "default-release"
           },
-          "manifests": {
-            "description": "All formats",
-            "type": "array",
-            "title": "available-manifests",
-            "items": {
-              "description": "format name",
-              "type": "string",
-              "title": "format-name"
-            }
-          },
           "name": {
             "description": "Package name",
             "type": "string",

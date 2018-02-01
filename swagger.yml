@@ -448,14 +448,6 @@ definitions:
             type: string
             title: release-name
             description: Release name
-        manifests:
-          type: array
-          title: available-manifests
-          description: All formats
-          items:
-            type: string
-            title: format-name
-            description: format name
 
   Package:
     type: object

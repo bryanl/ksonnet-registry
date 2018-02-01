@@ -26,11 +26,6 @@ type PackagesItems struct {
 	// Default/latest release version
 	Default string `json:"default,omitempty"`
 
-	// available-manifests
-	//
-	// All formats
-	Manifests []string `json:"manifests"`
-
 	// package-name
 	//
 	// Package name
@@ -51,11 +46,6 @@ type PackagesItems struct {
 func (m *PackagesItems) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateManifests(formats); err != nil {
-		// prop
-		res = append(res, err)
-	}
-
 	if err := m.validateReleases(formats); err != nil {
 		// prop
 		res = append(res, err)
@@ -64,15 +54,6 @@ func (m *PackagesItems) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-func (m *PackagesItems) validateManifests(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Manifests) { // not required
-		return nil
-	}
-
 	return nil
 }
 
