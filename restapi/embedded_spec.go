@@ -66,6 +66,18 @@ func init() {
             "schema": {
               "$ref": "#/definitions/Packages"
             }
+          },
+          "400": {
+            "description": "bad request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "internal server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
           }
         }
       }
@@ -561,6 +573,7 @@ func init() {
           "created_at": {
             "description": "Package creation date",
             "type": "string",
+            "format": "date-time",
             "title": "created_at"
           },
           "default": {

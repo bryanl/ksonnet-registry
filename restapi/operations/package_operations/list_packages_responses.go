@@ -58,3 +58,89 @@ func (o *ListPackagesOK) WriteResponse(rw http.ResponseWriter, producer runtime.
 	}
 
 }
+
+// ListPackagesBadRequestCode is the HTTP code returned for type ListPackagesBadRequest
+const ListPackagesBadRequestCode int = 400
+
+/*ListPackagesBadRequest bad request
+
+swagger:response listPackagesBadRequest
+*/
+type ListPackagesBadRequest struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.Error `json:"body,omitempty"`
+}
+
+// NewListPackagesBadRequest creates ListPackagesBadRequest with default headers values
+func NewListPackagesBadRequest() *ListPackagesBadRequest {
+	return &ListPackagesBadRequest{}
+}
+
+// WithPayload adds the payload to the list packages bad request response
+func (o *ListPackagesBadRequest) WithPayload(payload *models.Error) *ListPackagesBadRequest {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the list packages bad request response
+func (o *ListPackagesBadRequest) SetPayload(payload *models.Error) {
+	o.Payload = payload
+}
+
+// WriteResponse to the client
+func (o *ListPackagesBadRequest) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.WriteHeader(400)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
+}
+
+// ListPackagesInternalServerErrorCode is the HTTP code returned for type ListPackagesInternalServerError
+const ListPackagesInternalServerErrorCode int = 500
+
+/*ListPackagesInternalServerError internal server error
+
+swagger:response listPackagesInternalServerError
+*/
+type ListPackagesInternalServerError struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.Error `json:"body,omitempty"`
+}
+
+// NewListPackagesInternalServerError creates ListPackagesInternalServerError with default headers values
+func NewListPackagesInternalServerError() *ListPackagesInternalServerError {
+	return &ListPackagesInternalServerError{}
+}
+
+// WithPayload adds the payload to the list packages internal server error response
+func (o *ListPackagesInternalServerError) WithPayload(payload *models.Error) *ListPackagesInternalServerError {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the list packages internal server error response
+func (o *ListPackagesInternalServerError) SetPayload(payload *models.Error) {
+	o.Payload = payload
+}
+
+// WriteResponse to the client
+func (o *ListPackagesInternalServerError) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.WriteHeader(500)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
+}

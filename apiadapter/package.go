@@ -12,8 +12,35 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
-// CreatePackage creates a package.
-func CreatePackage(s store.Store, params package_operations.CreatePackageParams) middleware.Responder {
+// ListPackages lists all packages.
+func ListPackages(s store.Store, params package_operations.ListPackagesParams) middleware.Responder {
+	packages, err := registry.ListPackages(s)
+	if err != nil {
+		m := &models.Error{Message: err.Error()}
+		resp := package_operations.NewListPackagesInternalServerError().
+			WithPayload(m)
+		return resp
+	}
+
+	var payload models.Packages
+
+	for _, pkg := range packages {
+		pi := &models.PackagesItems{
+			CreatedAt:  strfmt.DateTime(pkg.CreatedAt),
+			Name:       pkg.Name(),
+			Visibility: pkg.Visibility(),
+		}
+
+		payload = append(payload, pi)
+	}
+
+	resp := package_operations.NewListPackagesOK().
+		WithPayload(payload)
+	return resp
+}
+
+// CreateRelease creates a package.
+func CreateRelease(s store.Store, params package_operations.CreatePackageParams) middleware.Responder {
 	release, err := registry.CreateRelease(
 		s,
 		params.Namespace,
@@ -135,7 +162,7 @@ func PullPackage(s store.Store, params blobs.PullBlobParams) middleware.Responde
 			WithPayload(&models.Error{Message: fmt.Sprintf("namespace %q not found", params.Namespace)})
 	}
 
-	pkg, err := ns.Package(params.Package)
+	pkg, err := ns.PackageByName(params.Package)
 	if err != nil {
 		return blobs.NewPullBlobNotFound().
 			WithPayload(&models.Error{Message: fmt.Sprintf("package %q not found", params.Package)})

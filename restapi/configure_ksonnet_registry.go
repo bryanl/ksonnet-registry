@@ -85,7 +85,7 @@ func configureAPI(api *operations.KsonnetRegistryAPI) http.Handler {
 	})
 
 	api.PackageOperationsCreatePackageHandler = package_operations.CreatePackageHandlerFunc(func(params package_operations.CreatePackageParams) middleware.Responder {
-		return apiadapter.CreatePackage(s, params)
+		return apiadapter.CreateRelease(s, params)
 	})
 	api.PackageOperationsDeletePackageReleaseHandler = package_operations.DeletePackageReleaseHandlerFunc(func(params package_operations.DeletePackageReleaseParams) middleware.Responder {
 		return apiadapter.DeletePackageRelease(s, params)
@@ -94,7 +94,7 @@ func configureAPI(api *operations.KsonnetRegistryAPI) http.Handler {
 		return apiadapter.GetVersion(params)
 	})
 	api.PackageOperationsListPackagesHandler = package_operations.ListPackagesHandlerFunc(func(params package_operations.ListPackagesParams) middleware.Responder {
-		return middleware.NotImplemented("operation package_operations.ListPackages has not yet been implemented")
+		return apiadapter.ListPackages(s, params)
 	})
 	api.BlobsPullBlobHandler = blobs.PullBlobHandlerFunc(func(params blobs.PullBlobParams) middleware.Responder {
 		return apiadapter.PullPackage(s, params)

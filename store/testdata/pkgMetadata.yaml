@@ -1,0 +1,4 @@
+---
+namespace: ns
+package: pkg
+isVisible: true

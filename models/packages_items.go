@@ -19,7 +19,7 @@ type PackagesItems struct {
 	// created_at
 	//
 	// Package creation date
-	CreatedAt string `json:"created_at,omitempty"`
+	CreatedAt strfmt.DateTime `json:"created_at,omitempty"`
 
 	// default-release
 	//

@@ -25,7 +25,17 @@ func NewNamespace(s store.Store, name string) *Namespace {
 }
 
 // Package returns a package from a namespace.
-func (n *Namespace) Package(pkgName string) (*Package, error) {
-	p := NewPackage(n.store, n.Name, pkgName)
+func (n *Namespace) Package(pm store.PackageMetadata) (*Package, error) {
+	p := NewPackage(n.store, pm)
 	return p, nil
+}
+
+// PackageByName retrieves a package by name.
+func (n *Namespace) PackageByName(name string) (*Package, error) {
+	pm, err := n.store.Package(n.Name, name)
+	if err != nil {
+		return nil, err
+	}
+
+	return n.Package(pm)
 }

@@ -121,6 +121,7 @@ func TestStore_Packages(t *testing.T) {
 		require.Len(t, names, 0)
 
 		mkdirAll(t, fs, filepath.Join(s.dir, "ns", "pkg"))
+		writeFile(t, fs, s.pkgMetadata("ns", "pkg"), testdata(t, "pkgMetadata.yaml"))
 
 		names, err = s.Packages("ns")
 		require.NoError(t, err)
@@ -304,4 +305,12 @@ func writeFile(t *testing.T, fs afero.Fs, name string, contents []byte) {
 func mkdirAll(t *testing.T, fs afero.Fs, dir string) {
 	err := fs.MkdirAll(dir, dirMode)
 	require.NoError(t, err)
+}
+
+func testdata(t *testing.T, name string) []byte {
+	path := filepath.Join("testdata", name)
+	b, err := ioutil.ReadFile(path)
+	require.NoError(t, err)
+
+	return b
 }

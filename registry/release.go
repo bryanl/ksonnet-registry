@@ -54,9 +54,20 @@ func CreateRelease(s store.Store, nsName, pkgName, ver, blob string) (*Release, 
 		return nil, err
 	}
 
-	pkg, err := ns.Package(pkgName)
+	pkg, err := ns.PackageByName(pkgName)
 	if err != nil {
-		return nil, err
+		switch err.(type) {
+		case *store.NotFoundError:
+			var pm store.PackageMetadata
+			pm, err = s.CreatePackage(nsName, pkgName)
+			if err != nil {
+				return nil, err
+			}
+
+			pkg = NewPackage(s, pm)
+		default:
+			return nil, err
+		}
 	}
 
 	data, err := base64.StdEncoding.DecodeString(blob)
@@ -79,7 +90,7 @@ func ShowRelease(s store.Store, nsName, pkgName, ver string) (*Release, error) {
 		return nil, err
 	}
 
-	pkg, err := ns.Package(pkgName)
+	pkg, err := ns.PackageByName(pkgName)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +105,7 @@ func ShowReleases(s store.Store, nsName, pkgName string) ([]Release, error) {
 		return nil, err
 	}
 
-	pkg, err := ns.Package(pkgName)
+	pkg, err := ns.PackageByName(pkgName)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +120,7 @@ func DeleteRelease(s store.Store, nsName, pkgName, ver string) error {
 		return err
 	}
 
-	pkg, err := ns.Package(pkgName)
+	pkg, err := ns.PackageByName(pkgName)
 	if err != nil {
 		return err
 	}

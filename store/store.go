@@ -27,10 +27,21 @@ const (
 var (
 	dirMode  os.FileMode = 0755
 	fileMode os.FileMode = 0644
-
-	// ErrNotFound is a not found error.
-	ErrNotFound = errors.New("not found")
 )
+
+// NotFoundError is a not found error.
+type NotFoundError struct {
+	item string
+}
+
+// NewNotFoundError creates a NotFoundError.
+func NewNotFoundError(item string) *NotFoundError {
+	return &NotFoundError{item: item}
+}
+
+func (e *NotFoundError) Error() string {
+	return fmt.Sprintf("%q was not found", e.item)
+}
 
 // PackageMetadata contains package metadata.
 type PackageMetadata struct {
@@ -73,7 +84,8 @@ func (ds Dependencies) ToMap() map[string]string {
 type Store interface {
 	Namespaces() ([]string, error)
 	CreatePackage(ns, pkg string) (PackageMetadata, error)
-	Packages(ns string) ([]string, error)
+	Packages(ns string) ([]PackageMetadata, error)
+	Package(ns, pkg string) (PackageMetadata, error)
 	Releases(ns string, pkg string) ([]ReleaseMetadata, error)
 	CreateRelease(ns, pkg, release string, data []byte) (ReleaseMetadata, error)
 	RemoveRelease(ns, pkg, release string) error
@@ -187,12 +199,12 @@ func (s *FileSystemStore) CreatePackage(ns, pkg string) (PackageMetadata, error)
 }
 
 // Packages returns packages in a namespace.
-func (s *FileSystemStore) Packages(ns string) ([]string, error) {
+func (s *FileSystemStore) Packages(ns string) ([]PackageMetadata, error) {
 	dir := filepath.Join(s.dir, ns)
 
 	if _, err := s.fs.Stat(dir); err != nil {
 		if os.IsNotExist(err) {
-			return make([]string, 0), nil
+			return make([]PackageMetadata, 0), nil
 		}
 
 		return nil, err
@@ -203,15 +215,44 @@ func (s *FileSystemStore) Packages(ns string) ([]string, error) {
 		return nil, err
 	}
 
-	var packages []string
+	var packages []PackageMetadata
 
 	for _, file := range files {
 		if file.IsDir() {
-			packages = append(packages, file.Name())
+			pm, err := s.Package(ns, file.Name())
+			if err != nil {
+				return nil, err
+			}
+			packages = append(packages, pm)
 		}
 	}
 
 	return packages, nil
+}
+
+// Package returns a package by name.
+func (s *FileSystemStore) Package(ns, pkg string) (PackageMetadata, error) {
+	dir := s.pkgDir(ns, pkg)
+
+	if _, err := s.fs.Stat(dir); err != nil {
+		if os.IsNotExist(err) {
+			return PackageMetadata{}, NewNotFoundError(ns + "/" + pkg)
+		}
+
+		return PackageMetadata{}, err
+	}
+
+	b, err := afero.ReadFile(s.fs, s.pkgMetadata(ns, pkg))
+	if err != nil {
+		return PackageMetadata{}, err
+	}
+
+	var pm PackageMetadata
+	if err := yaml.Unmarshal(b, &pm); err != nil {
+		return PackageMetadata{}, err
+	}
+
+	return pm, nil
 }
 
 // Releases returns releases in a package.
@@ -251,11 +292,10 @@ func (s *FileSystemStore) Releases(ns string, pkg string) ([]ReleaseMetadata, er
 func (s *FileSystemStore) CreateRelease(ns, pkg, release string, data []byte) (ReleaseMetadata, error) {
 	var rm ReleaseMetadata
 
-	pkgDir := filepath.Join(s.dir, ns, pkg)
-	if !fileExists(s.fs, pkgDir) {
+	if !fileExists(s.fs, s.pkgDir(ns, pkg)) {
 		_, err := s.CreatePackage(ns, pkg)
 		if err != nil {
-			return ReleaseMetadata{}, err
+			return ReleaseMetadata{}, errors.Wrapf(err, "create package %s/%s", ns, pkg)
 		}
 	}
 
@@ -419,7 +459,7 @@ func (s *FileSystemStore) Pull(ns, pkg, digest string) (multipart.File, error) {
 	blob := filepath.Join(digestDir, blobName)
 	if _, err := s.fs.Stat(blob); err != nil {
 		if os.IsNotExist(err) {
-			return nil, ErrNotFound
+			return nil, NewNotFoundError(fmt.Sprintf("digest %s in %s/%s", digest, ns, pkg))
 		}
 
 		return nil, err
@@ -512,4 +552,16 @@ func (s *FileSystemStore) copyFile(src, dest string) error {
 func fileExists(fs afero.Fs, name string) bool {
 	_, err := fs.Stat(name)
 	return err == nil
+}
+
+func (s *FileSystemStore) nsDir(ns string) string {
+	return filepath.Join(s.dir, ns)
+}
+
+func (s *FileSystemStore) pkgDir(ns, pkg string) string {
+	return filepath.Join(s.nsDir(ns), pkg)
+}
+
+func (s *FileSystemStore) pkgMetadata(ns, pkg string) string {
+	return filepath.Join(s.pkgDir(ns, pkg), pkgMetadataName)
 }
