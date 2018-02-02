@@ -33,6 +33,11 @@ func (e *NotFoundError) Error() string {
 	return fmt.Sprintf("%q was not found", e.item)
 }
 
+// NamespaceMetdata is namespace metdata.
+type NamespaceMetdata struct {
+	Namespace string `yaml:"namespace"`
+}
+
 // PackageMetadata contains package metadata.
 type PackageMetadata struct {
 	Namespace string    `yaml:"namespace"`
@@ -72,7 +77,7 @@ func (ds Dependencies) ToMap() map[string]string {
 
 // Store manages files
 type Store interface {
-	Namespaces() ([]string, error)
+	Namespaces() ([]NamespaceMetdata, error)
 	CreatePackage(ns, pkg string) (PackageMetadata, error)
 	Packages(ns string) ([]PackageMetadata, error)
 	Package(ns, pkg string) (PackageMetadata, error)

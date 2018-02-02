@@ -68,17 +68,18 @@ func NewFileSystemStore(opts ...FileSystemStoreOpt) (*FileSystemStore, error) {
 }
 
 // Namespaces returns a list of namespaces in the store.
-func (s *FileSystemStore) Namespaces() ([]string, error) {
+func (s *FileSystemStore) Namespaces() ([]NamespaceMetdata, error) {
 	files, err := afero.ReadDir(s.fs, s.dir)
 	if err != nil {
 		return nil, err
 	}
 
-	var namespaces []string
+	var namespaces []NamespaceMetdata
 
 	for _, file := range files {
 		if file.IsDir() {
-			namespaces = append(namespaces, file.Name())
+			nm := NamespaceMetdata{Namespace: file.Name()}
+			namespaces = append(namespaces, nm)
 		}
 	}
 
