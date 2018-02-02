@@ -1,9 +1,7 @@
 package store
 
 import (
-	"archive/tar"
 	"bytes"
-	"compress/gzip"
 	"crypto/sha256"
 	"fmt"
 	"io"
@@ -326,7 +324,8 @@ func (s *FileSystemStore) CreateRelease(ns, pkg, release string, data []byte) (R
 	defer s.fs.RemoveAll(tmpDir)
 
 	r := bytes.NewReader(data)
-	if err = s.extractTarGz(tmpDir, r); err != nil {
+	tgz := tarGz{s.fs}
+	if err = tgz.extractTarGz(tmpDir, r); err != nil {
 		return rm, errors.Wrap(err, "blob was not a gzip'd tar file")
 	}
 
@@ -476,60 +475,6 @@ func (s *FileSystemStore) Close() error {
 func digest(data []byte) string {
 	sum := sha256.Sum256(data)
 	return fmt.Sprintf("%x", sum)
-}
-
-func (s *FileSystemStore) extractTarGz(dest string, r io.Reader) error {
-	gzr, err := gzip.NewReader(r)
-	if err != nil {
-		return err
-	}
-
-	defer gzr.Close()
-
-	tr := tar.NewReader(gzr)
-
-	for {
-		header, err := tr.Next()
-
-		switch {
-
-		// no more files
-		case err == io.EOF:
-			return nil
-
-		// unknown error
-		case err != nil:
-			return err
-
-		// no header
-		case header == nil:
-			continue
-		}
-
-		target := filepath.Join(dest, header.Name)
-
-		switch header.Typeflag {
-
-		// ensure dir exists
-		case tar.TypeDir:
-			if _, err := s.fs.Stat(target); err != nil {
-				if err := s.fs.MkdirAll(target, dirMode); err != nil {
-					return err
-				}
-			}
-
-		case tar.TypeReg:
-			f, err := s.fs.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
-			if err != nil {
-				return err
-			}
-			defer f.Close()
-
-			if _, err := io.Copy(f, tr); err != nil {
-				return err
-			}
-		}
-	}
 }
 
 func (s *FileSystemStore) copyFile(src, dest string) error {
