@@ -1,17 +1,24 @@
 package store
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"mime/multipart"
 	"os"
 	"time"
+
+	"github.com/bryanl/ksonnet-registry/repository"
+	uuid "github.com/satori/go.uuid"
 )
 
 const (
 	pkgMetadataName = "metadata.yaml"
 	blobName        = "part.tar.gz"
+	blobMIMEType    = "application/x-gzip"
 	configName      = "parts.yaml"
+	configMIMEType  = "application/x-yaml"
 	docName         = "README.md"
+	docMIMEType     = "text/markdown"
 )
 
 var (
@@ -35,11 +42,13 @@ func (e *NotFoundError) Error() string {
 
 // NamespaceMetdata is namespace metdata.
 type NamespaceMetdata struct {
-	Namespace string `yaml:"namespace"`
+	ID        uuid.UUID `yaml:"id"`
+	Namespace string    `yaml:"namespace"`
 }
 
 // PackageMetadata contains package metadata.
 type PackageMetadata struct {
+	ID        uuid.UUID `yaml:"id"`
 	Namespace string    `yaml:"namespace"`
 	Package   string    `yaml:"package"`
 	CreatedAt time.Time `yaml:"createdAt"`
@@ -48,35 +57,19 @@ type PackageMetadata struct {
 
 // ReleaseMetadata contains release metadata.
 type ReleaseMetadata struct {
+	ID           uuid.UUID `yaml:"id"`
+	Namespace    string
+	Package      string
 	Digest       string
 	Size         int64
 	CreatedAt    time.Time
 	Version      string
-	Dependencies Dependencies
-}
-
-// Dependency specifies a release dependency.
-type Dependency struct {
-	Name       string
-	Constraint string
-}
-
-// Dependencies are a slice of Dependency.
-type Dependencies []Dependency
-
-// ToMap converts the Dependencies to a map.
-func (ds Dependencies) ToMap() map[string]string {
-	m := make(map[string]string)
-
-	for _, d := range ds {
-		m[d.Name] = d.Constraint
-	}
-
-	return m
+	Dependencies repository.Dependencies
 }
 
 // Store manages files
 type Store interface {
+	CreateNamespace(ns string) (NamespaceMetdata, error)
 	Namespaces() ([]NamespaceMetdata, error)
 	CreatePackage(ns, pkg string) (PackageMetadata, error)
 	Packages(ns string) ([]PackageMetadata, error)
@@ -88,4 +81,9 @@ type Store interface {
 	Pull(ns, pkg, digest string) (multipart.File, error)
 
 	Close() error
+}
+
+func makeDigest(data []byte) string {
+	sum := sha256.Sum256(data)
+	return fmt.Sprintf("%x", sum)
 }

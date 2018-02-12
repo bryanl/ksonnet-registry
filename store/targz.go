@@ -12,10 +12,37 @@ import (
 )
 
 type tarGz struct {
-	fs afero.Fs
+	tmpDir string
+	fs     afero.Fs
 }
 
-func (t *tarGz) extractTarGz(dest string, r io.Reader) error {
+func newTarGz(fs afero.Fs) (*tarGz, error) {
+	tmpDir, err := afero.TempDir(fs, "", "extract-part")
+	if err != nil {
+		return nil, err
+	}
+
+	tgz := &tarGz{
+		fs:     fs,
+		tmpDir: tmpDir,
+	}
+
+	return tgz, nil
+}
+
+func (t *tarGz) config() ([]byte, error) {
+	return afero.ReadFile(t.fs, filepath.Join(t.tmpDir, "parts.yaml"))
+}
+
+func (t *tarGz) readme() ([]byte, error) {
+	return afero.ReadFile(t.fs, filepath.Join(t.tmpDir, "README.md"))
+}
+
+func (t *tarGz) close() error {
+	return t.fs.RemoveAll(t.tmpDir)
+}
+
+func (t *tarGz) extractTarGz(r io.Reader) error {
 	if t.fs == nil {
 		return errors.New("fs is nil")
 	}
@@ -47,7 +74,7 @@ func (t *tarGz) extractTarGz(dest string, r io.Reader) error {
 			continue
 
 		default:
-			if err := t.extractItem(tr, dest, header); err != nil {
+			if err := t.extractItem(tr, t.tmpDir, header); err != nil {
 				return errors.Wrap(err, "extract item from tar")
 			}
 		}

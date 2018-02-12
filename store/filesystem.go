@@ -2,7 +2,6 @@ package store
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -10,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/bryanl/ksonnet-registry/repository"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 	yaml "gopkg.in/yaml.v2"
@@ -65,6 +65,13 @@ func NewFileSystemStore(opts ...FileSystemStoreOpt) (*FileSystemStore, error) {
 	}
 
 	return ts, nil
+}
+
+// CreateNamespace creates a namespace.
+func (s *FileSystemStore) CreateNamespace(ns string) (NamespaceMetdata, error) {
+	return NamespaceMetdata{
+		Namespace: ns,
+	}, nil
 }
 
 // Namespaces returns a list of namespaces in the store.
@@ -220,12 +227,12 @@ func (s *FileSystemStore) CreateRelease(ns, pkg, release string, data []byte) (R
 		}
 	}
 
-	d := digest(data)
-	digestDir := filepath.Join(s.dir, ns, pkg, "digests", d)
+	digest := makeDigest(data)
+	digestDir := filepath.Join(s.dir, ns, pkg, "digests", digest)
 	releaseDir := filepath.Join(s.dir, ns, pkg, "releases")
 
 	if _, err := s.fs.Stat(digestDir); err == nil {
-		return rm, errors.Errorf("digest %q already exists", d)
+		return rm, errors.Errorf("digest %q already exists", digest)
 	}
 
 	if _, err := s.fs.Stat(filepath.Join(releaseDir, release)); err == nil {
@@ -240,35 +247,30 @@ func (s *FileSystemStore) CreateRelease(ns, pkg, release string, data []byte) (R
 	partConfig := filepath.Join(digestDir, configName)
 	partDoc := filepath.Join(digestDir, docName)
 
-	tmpDir, err := afero.TempDir(s.fs, "", "extract-part")
+	if err := s.fs.MkdirAll(releaseDir, dirMode); err != nil {
+		return rm, err
+	}
+
+	tgz, err := newTarGz(s.fs)
 	if err != nil {
 		return rm, err
 	}
-	defer s.fs.RemoveAll(tmpDir)
+	defer tgz.close()
 
 	r := bytes.NewReader(data)
-	tgz := tarGz{s.fs}
-	if err = tgz.extractTarGz(tmpDir, r); err != nil {
+	if err = tgz.extractTarGz(r); err != nil {
 		return rm, errors.Wrap(err, "blob was not a gzip'd tar file")
 	}
 
-	if err = afero.WriteFile(s.fs, partData, data, fileMode); err != nil {
+	if err = s.writeReleaseFile(digestDir, partConfig, tgz.config); err != nil {
 		return rm, err
 	}
 
-	if err = s.copyFile(filepath.Join(tmpDir, "parts.yaml"), partConfig); err != nil {
-		return rm, errors.New("part is missing parts.yaml")
-	}
-
-	if err = s.copyFile(filepath.Join(tmpDir, "README.md"), partDoc); err != nil {
-		return rm, errors.New("part is missing README.md")
-	}
-
-	if err = s.fs.MkdirAll(releaseDir, dirMode); err != nil {
+	if err = s.writeReleaseFile(digestDir, partDoc, tgz.readme); err != nil {
 		return rm, err
 	}
 
-	if err = afero.WriteFile(s.fs, filepath.Join(releaseDir, release), []byte(d), fileMode); err != nil {
+	if err = s.writeReleaseFile(digestDir, partData, func() ([]byte, error) { return data, nil }); err != nil {
 		return rm, err
 	}
 
@@ -277,7 +279,11 @@ func (s *FileSystemStore) CreateRelease(ns, pkg, release string, data []byte) (R
 		return rm, err
 	}
 
-	rm.Digest = d
+	if err := afero.WriteFile(s.fs, filepath.Join(releaseDir, release), []byte(digest), fileMode); err != nil {
+		return rm, err
+	}
+
+	rm.Digest = digest
 	rm.CreatedAt = fi.ModTime()
 	rm.Size = fi.Size()
 	rm.Version = release
@@ -363,7 +369,7 @@ func (s *FileSystemStore) Release(ns, pkg, release string) (ReleaseMetadata, err
 	rm.Version = release
 
 	for k, v := range pc.Dependencies {
-		dep := Dependency{
+		dep := repository.Dependency{
 			Name:       k,
 			Constraint: v,
 		}
@@ -393,11 +399,6 @@ func (s *FileSystemStore) Pull(ns, pkg, digest string) (multipart.File, error) {
 // Close closes the TempStore.
 func (s *FileSystemStore) Close() error {
 	return s.closeFn()
-}
-
-func digest(data []byte) string {
-	sum := sha256.Sum256(data)
-	return fmt.Sprintf("%x", sum)
 }
 
 func (s *FileSystemStore) copyFile(src, dest string) error {
@@ -432,4 +433,13 @@ func (s *FileSystemStore) pkgDir(ns, pkg string) string {
 
 func (s *FileSystemStore) pkgMetadata(ns, pkg string) string {
 	return filepath.Join(s.pkgDir(ns, pkg), pkgMetadataName)
+}
+
+func (s *FileSystemStore) writeReleaseFile(releaseDir, name string, fn func() ([]byte, error)) error {
+	data, err := fn()
+	if err != nil {
+		return err
+	}
+
+	return afero.WriteFile(s.fs, name, data, fileMode)
 }
